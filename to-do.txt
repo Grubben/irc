@@ -1,0 +1,72 @@
+http://beej.us/guide/bgnet/
+
+
+Creating an IRC server is a complex project, and the structure of your code will 
+    depend on your specific requirements and design goals. However, there are several 
+    components and features you'll typically need in an IRC server. Here are some additional 
+    elements you might want to consider adding to your code structure:
+
+    User and Connection Management:
+        Maintain a list of connected clients and their state (nicknames, channels, etc.).
+        Implement functions to handle client connections, disconnections, and data transmission.
+
+    Message Parsing and Handling:
+        Implement message parsing to interpret IRC messages sent by clients.
+        Handle various IRC commands (e.g., JOIN, PART, PRIVMSG, NICK, etc.).
+        Manage channels and users based on client actions.
+
+    Channel Management:
+        Create a data structure to represent channels and their properties.
+        Implement channel-related commands like creating channels, joining, and leaving them.
+        Handle channel modes and permissions.
+
+    User Authentication and Registration:
+        Implement a registration system for users, including nickname selection.
+        Authenticate users during login and handle login failures.
+
+    Command Processing:
+        Implement a command processing system that can interpret and execute IRC commands.
+        Use a command handler system to organize and manage different command types.
+
+    Message Broadcasting:
+        Implement a mechanism to broadcast messages to users in a channel.
+        Support private messages between users.
+
+    Error Handling:
+        Handle various error conditions and provide meaningful error messages to clients.
+
+    Logging:
+        Implement logging functionality to record server activities and user interactions.
+
+    Configuration:
+        Extend your ServerEnvironment to include configuration options for server settings 
+            (e.g., hostname, server name, MOTD, etc.).
+
+    Multithreading:
+        Consider using multithreading or asynchronous programming to handle multiple client 
+            connections simultaneously.
+
+    Security:
+        Implement security measures to prevent common IRC vulnerabilities like flooding, 
+            spamming, or unauthorized access.
+
+    User Commands:
+        Add more user commands and features as needed (e.g., user registration, password 
+            protection, etc.).
+
+    Administrative Commands:
+        Include commands for server operators to manage the server and its users.
+
+    Network Protocol Handling:
+        Ensure your server adheres to the IRC protocol specifications (RFC 1459 or later).
+
+    Documentation:
+        Document your code, including comments and a user/administrator guide for your IRC server.
+
+    Testing:
+        Develop a testing framework to test different aspects of your server's functionality.
+
+This is a high-level overview of what you might need in your IRC server code structure. 
+Depending on your project's scope and goals, you may need to add more specific features 
+    and optimizations. IRC server development is a challenging task, so it's crucial to 
+    plan your architecture carefully and thoroughly test your implementation.
