@@ -4,29 +4,33 @@ void parseInput(int argc, char **argv);
 
 int main(int argc, char **argv)
 {
-    parseInput(argc, argv);
+    try
+    {
+        parseInput(argc, argv);
 
-    // init server environment
-    ServerEnvironment serverEnvironment(atoi(argv[1]));
+        // init server environment
+        ServerEnvironment serverEnvironment(atoi(argv[1]));
 
-    // start server
-    Server server(serverEnvironment);
-
-
+        // start server
+        Server server(serverEnvironment);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << std::endl;
+        return (1);
+    }
     
-    
-
+    // start server loop
+    //server.run();
 
     return 0;
 }
 
 void parseInput(int argc, char **argv)
 {
+    // Vai ser preciso melhorar o parser do input tendo em conta a password
     if (argc != 2)
-    {
-        std::cerr << "Usage: ./ircserv [port]" << std::endl;
-        exit(1);
-    }
+        throw ParserArgCountError();
     for (int i = 0; argv[1][i]; i++)
     {
         if (!isdigit(argv[1][i]))
@@ -36,8 +40,5 @@ void parseInput(int argc, char **argv)
         }
     }
     if (atoi(argv[1]) < 0 || atoi(argv[1]) > 65535)
-    {
-        std::cerr << "Port must be between 0 and 65535" << std::endl;
-        exit(1);
-    }
+        throw ParserPortNumberError();
 }

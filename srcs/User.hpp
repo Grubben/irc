@@ -10,6 +10,7 @@ class User
 private:
     std::string _name;
     std::string _state;
+    int _socket;
     User();
 
 public:
