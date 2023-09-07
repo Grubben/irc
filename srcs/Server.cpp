@@ -101,6 +101,13 @@ void Server::run()
                     message[len] = 0;
                     std::cout << message;
                 }
+                else if (len == 0)
+                {
+                    std::cout << "Client has left the network" << std::endl;
+                    close(*it);
+                    FD_CLR(*it, &master);
+                    //TODO: remove user from _users
+                }
             }
         }
     }
