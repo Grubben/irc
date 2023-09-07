@@ -8,14 +8,14 @@
 class User
 {
 private:
-    std::string _name;
-    std::string _state;
-    int _socket;
+    int     _socket;
     User();
 
 public:
-    User(std::string name);
+    User(int userSocket);
     ~User();
+
+    int getSocket() const;
 };
 
 #endif

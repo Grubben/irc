@@ -7,7 +7,7 @@
 #include "Channel.hpp"
 
 #include <fcntl.h>
-#include <vector>
+#include <list>
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -19,6 +19,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define BACKLOG 10
 
@@ -46,11 +47,11 @@ class Server
 {
 private:
     ServerEnvironment _environment;
-    std::vector<User> _users;
+    std::list<User> _users;
     std::vector<Channel> _channels;
 
     sockaddr_in _address;
-
+    socklen_t addr_size;
     int _socket;
 
     Server();
@@ -59,6 +60,7 @@ public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
 
+    void run();
 };
 
 #endif

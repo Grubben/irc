@@ -4,7 +4,7 @@ CXX = c++
 
 CXXFLAGS = -Wall -Wextra -Werror -g -std=c++98 
 
-SRCS = srcs/main.cpp srcs/ServerEnvironment.cpp srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp
+SRCS = srcs/main.cpp srcs/ServerEnvironment.cpp srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp srcs/Exceptions.cpp
 
 OBJS = $(SRCS:%.cpp=%.o)
 

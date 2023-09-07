@@ -13,6 +13,8 @@ int main(int argc, char **argv)
 
         // start server
         Server server(serverEnvironment);
+
+        server.run();
     }
     catch(const std::exception& e)
     {
@@ -21,7 +23,7 @@ int main(int argc, char **argv)
     }
     
     // start server loop
-    //server.run();
+    
 
     return 0;
 }

@@ -1,11 +1,15 @@
 #include "User.hpp"
 
-User::User(std::string name)
+User::User(int userSocket)
 {
-    _name = name;
-    _state = "active";
+    _socket = userSocket;
 }
 
 User::~User()
 {
+}
+
+int User::getSocket() const
+{
+    return _socket;
 }

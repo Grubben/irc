@@ -42,46 +42,39 @@ Server::Server(ServerEnvironment serverEnvironment)
 
     /* Set socket to non-blocking */
     fcntl(_socket, F_SETFL, O_NONBLOCK);
-
-    
-    
-    // FROM HERE TO
-
-    /* Accept incoming connections */
-    struct sockaddr_storage their_addr;
-    socklen_t addr_size;
-    int newSocket = accept(_socket, (sockaddr *)&their_addr, (socklen_t*)&addr_size);
-    if (newSocket == -1)
-        throw SocketAcceptingError();
-
-    /* Send message to client */
-    char msg[512] = "Hello World !\n";
-    int len, bytes_sent;
-    len = strlen(msg);
-    bytes_sent = send(newSocket, msg, len, 0);
-    if (bytes_sent == -1)
-        throw SocketSendingError();
-
-    
-    
-    /* Close socket */
-    close(newSocket);
-    close(_socket);
-
-
-
-    // HERE IS JUST A TEST TO SEE IF THE SERVER IS WORKING, MAYBE WILL CHANGE PLACES
 }
 
-/*
+
 void Server::run()
 {
     while (true)
     {
         
+        int new_socket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
+        if (new_socket != -1)
+        {
+            fcntl(new_socket, F_SETFL, O_NONBLOCK);
+
+            _users.push_back(User(new_socket));
+            
+            std::cout << "New connection from " << inet_ntoa(_address.sin_addr) << ":" << ntohs(_address.sin_port) << std::endl;
+        }
+
+        std::list<User>::iterator it = _users.begin();
+        for (; it != _users.end(); it++)
+        {
+            char message[1024];
+            int len;
+            if((len = recv(it->getSocket(), message, 1024, 0)) > 0)
+            {
+                message[len] = 0;
+                std::cout << message;
+            }
+        }
+               
     }
 }
-*/
+
 
 Server::Server()
 {
@@ -89,4 +82,5 @@ Server::Server()
 
 Server::~Server()
 {
+    close(_socket);
 }
