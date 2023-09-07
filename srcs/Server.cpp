@@ -47,31 +47,62 @@ Server::Server(ServerEnvironment serverEnvironment)
 
 void Server::run()
 {
+    struct timeval tv;
+
+    fd_set  master;
+    fd_set  readfds;
+
+    tv.tv_sec = 200;
+    tv.tv_usec = 500000;
+
+    std::vector<int> clientfds;
+
+    FD_ZERO(&master);
+    FD_ZERO(&readfds);
+
+
+    FD_SET(_socket, &master);
+
+    int fdmax = _socket;
+
     while (true)
     {
-        
-        int new_socket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
-        if (new_socket != -1)
-        {
-            fcntl(new_socket, F_SETFL, O_NONBLOCK);
+        readfds = master;
 
-            _users.push_back(User(new_socket));
-            
-            std::cout << "New connection from " << inet_ntoa(_address.sin_addr) << ":" << ntohs(_address.sin_port) << std::endl;
+        if (select(fdmax + 1, &readfds, NULL, NULL, &tv) == 0)
+            continue;
+        std::cout << "Poll triggered" << std::endl;
+
+        if (FD_ISSET(_socket, &readfds)) // New user
+        {
+            std::cout << "New connection" << std::endl;
+            int newuser_socket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
+            fcntl(newuser_socket, F_SETFL, O_NONBLOCK);
+
+            clientfds.push_back(newuser_socket);
+
+            //Adding new user to list
+            _users.push_back(User(newuser_socket));
+
+            FD_SET(newuser_socket, &master);
+            fdmax = newuser_socket + 1;
         }
 
-        std::list<User>::iterator it = _users.begin();
-        for (; it != _users.end(); it++)
+        std::vector<int>::iterator it = clientfds.begin();
+
+        for (; it != clientfds.end(); it++)
         {
-            char message[1024];
-            int len;
-            if((len = recv(it->getSocket(), message, 1024, 0)) > 0)
+            if (FD_ISSET(*it, &readfds))
             {
-                message[len] = 0;
-                std::cout << message;
+                char message[1024] = "";
+                int len;
+                if((len = recv(*it, message, 1024, 0)) > 0)
+                {
+                    message[len] = 0;
+                    std::cout << message;
+                }
             }
         }
-               
     }
 }
 
