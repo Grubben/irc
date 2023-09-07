@@ -100,6 +100,12 @@ void Server::run()
                 {
                     message[len] = 0;
                     std::cout << message;
+                    std::vector<int>::iterator minit = clientfds.begin();
+                    for (; minit != clientfds.end(); minit++)
+                    {
+                        if (*it != *minit)
+                            send(*minit, message, len, 0);
+                    }
                 }
                 else if (len == 0)
                 {
