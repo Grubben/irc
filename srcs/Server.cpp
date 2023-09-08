@@ -52,63 +52,74 @@ void Server::run()
     std::string msg;
 
     FD_ZERO(&masterFDs);
-    FD_ZERO(&readFDs);
+    // FD_ZERO(&readFDs);
     FD_SET(_socket, &masterFDs);
     int fdMax = _socket;
-
+    int n;
 
     while (true)
     {
         readFDs = masterFDs;
 
-        if (select(fdMax + 1, &readFDs, NULL, NULL, NULL) == 0)
+        n = select(fdMax + 1, &readFDs, NULL, NULL, NULL);
+        if (n == 0)
             continue;
-        std::cout << "Poll triggered" << std::endl;
+        std::cout << n << " polls triggered" << std::endl;
 
-        dataReceived(masterFDs, readFDs);
+
         if (isNewUser(readFDs))
         {
-            if (validPassword(readFDs))
+            // if (validPassword(readFDs))
                 acceptConnection(masterFDs, fdMax);
-            else
-                std::cout << "Invalid password" << std::endl;
+            // else
+            //     std::cout << "Invalid password" << std::endl;
+            if (n == 1)
+                continue;
         }
+
+
+        dataReceived(masterFDs, readFDs);
+
+
 
         // broadcast(msg);
     }
 }
 
-void    Server::broadcast(const std::string msg)
-{
-    std::vector<int>::iterator minit = clientFDs.begin();
-    for (; minit != clientFDs.end(); minit++)
-    {
-        // if (*it != *minit)
-        if (send(*minit, msg.c_str(), msg.length(), 0) == -1)
-            throw SocketSendingError();
-    }
-}
+// void    Server::broadcast(const std::string msg)
+// {
+//     std::vector<User>::iterator it = users.begin();
+//     for (; it != users.end(); it++)
+//     {
+//         // if (*it != *it)
+//         if (send(*it, msg.c_str(), msg.length(), 0) == -1)
+//             throw SocketSendingError();
+//     }
+// }
 
 void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 {
-    std::vector<int>::iterator it = clientFDs.begin();
-    for (; it != clientFDs.end(); it++)
+    std::list<User>::iterator it = users.begin();
+    for (; it != users.end(); it++)
     {
-        if (FD_ISSET(*it, &readFDs))
+        if (FD_ISSET(it->getSocket(), &readFDs))
         {
             char message[1024] = "";
-            int len = recv(*it, message, sizeof(message) - 1, 0);
+            int len = recv(it->getSocket(), message, sizeof(message) - 1, 0);
+
             if(len > 0)
             {
                 message[len] = 0;
-                messageHandler(message);
-                std::cout << message << std::ends;
+                std::cout << message;
+                // messageHandler(message);
+                it->says(message);
             }
             else if (len == 0)
             {
+                this->remove(*it);
                 std::cout << "Client has left the network" << std::endl;
-                close(*it);
-                FD_CLR(*it, &masterFDs);
+                close(it->getSocket());
+                FD_CLR(it->getSocket(), &masterFDs);
                 //TODO: remove user from _users
             }
             else
@@ -117,24 +128,25 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
     }
 }
 
-int Server::validPassword(fd_set& readFDs)
+bool Server::validPassword(fd_set& readFDs)
 {
     // to be changed
-    return (1);
+    return (true);
 }
 
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
 {
-    std::cout << "New connection" << std::endl;
+    std::cout << "New connection. Creating new user" << std::endl;
     int newUserSocket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
     if (newUserSocket == -1)
         throw SocketAcceptingError();
     fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
 
-    clientFDs.push_back(newUserSocket);
 
-    //Adding new user to list
-    _users.push_back(User(newUserSocket));
+    // clientFDs.push_back(newUserSocket);
+    User    newuser(this, newUserSocket);
+    users.push_back(newuser);
+
 
     FD_SET(newUserSocket, &masterFDs);
     fdMax = newUserSocket + 1;
@@ -153,4 +165,21 @@ Server::~Server()
 {
     close(_socket);
     
+}
+
+void    Server::remove(User user)
+{
+    std::cout << users.size() << std::endl;
+    users.remove(user);
+    std::cout << users.size() << std::endl;
+
+    // std::list<User>::iterator it = users.begin();
+    // for (; it != users.end(); it++)
+    // {
+        // if (it->getSocket() == user.getSocket())
+        // {
+        //     users.remove(user.getSocket());
+        // }
+    // }
+
 }

@@ -5,6 +5,7 @@
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
+#include "InputIRCParser.hpp"
 
 #include <fcntl.h>
 #include <list>
@@ -52,10 +53,8 @@ class Server
 {
 private:
     ServerEnvironment _environment;
-    std::list<User> _users;
-    std::vector<Channel> _channels;
 
-    std::vector<int> clientFDs;
+    // std::vector<int> clientFDs;
 
     sockaddr_in _address;
     socklen_t addr_size;
@@ -63,7 +62,7 @@ private:
 
     Server();
     int isNewUser(fd_set& readFDs);
-    int validPassword(fd_set& readFDs);
+    bool validPassword(fd_set& readFDs);
     void acceptConnection(fd_set& masterFDs, int& fdMax);
     void dataReceived(fd_set& masterFDs, fd_set& readFDs);
 
@@ -72,8 +71,16 @@ public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
 
-    void run();
+    void    run();
+
+    void    remove(User user);
+
     void    broadcast(const std::string msg);
+    
+    
+    
+    std::list<User> users;
+    // static std::vector<Channel> _channels;
 };
 
 #endif
