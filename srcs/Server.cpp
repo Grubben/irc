@@ -49,17 +49,13 @@ void Server::run()
 {
     fd_set  masterFDs;
     fd_set  readFDs;
+    std::string msg;
 
     FD_ZERO(&masterFDs);
     FD_ZERO(&readFDs);
     FD_SET(_socket, &masterFDs);
     int fdMax = _socket;
-    
-    // Neccessary??
-    struct timeval tv;
-    tv.tv_sec = 200;
-    tv.tv_usec = 500000;
-    //_
+
 
     while (true)
     {
@@ -78,7 +74,9 @@ void Server::run()
             acceptConnection(masterFDs, fdMax);
         }
 
-        dataReceived(masterFDs, readFDs);
+        msg = dataReceived(masterFDs, readFDs);
+
+        // broadcast(msg);
     }
 }
 
@@ -93,8 +91,10 @@ void    Server::broadcast(const std::string msg)
     }
 }
 
-void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
+std::string Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 {
+    std::string msg;
+
     std::vector<int>::iterator it = clientFDs.begin();
     for (; it != clientFDs.end(); it++)
     {
@@ -105,10 +105,9 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             if(len > 0)
             {
                 message[len] = 0;
+
                 std::cout << message << std::ends;
-
-                broadcast(message);
-
+                msg = message;
             }
             else if (len == 0)
             {
@@ -121,6 +120,7 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
                 throw SocketReceivingError();
         }
     }
+    return msg;
 }
 
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)

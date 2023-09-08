@@ -64,7 +64,7 @@ private:
     Server();
     int isNewUser(fd_set& readFDs);
     void acceptConnection(fd_set& masterFDs, int& fdMax);
-    void dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    std::string dataReceived(fd_set& masterFDs, fd_set& readFDs);
 
 public:
     Server(ServerEnvironment serverEnvironment);
