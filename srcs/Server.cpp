@@ -59,6 +59,7 @@ void Server::run()
     struct timeval tv;
     tv.tv_sec = 200;
     tv.tv_usec = 500000;
+    //_
 
     while (true)
     {
@@ -90,7 +91,6 @@ void    Server::broadcast(const std::string msg)
         if (send(*minit, msg.c_str(), msg.length(), 0) == -1)
             throw SocketSendingError();
     }
-
 }
 
 void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
