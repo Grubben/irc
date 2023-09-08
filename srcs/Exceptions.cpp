@@ -45,3 +45,8 @@ const char* ParserPortNumberError::what() const throw()
 {
     return "Port must be between 0 and 65535";
 }
+
+const char* ParserPasswordError::what() const throw()
+{
+    return "Password must be less than 32 characters";
+}

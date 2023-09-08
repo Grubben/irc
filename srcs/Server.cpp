@@ -71,11 +71,10 @@ void Server::run()
 
         if (isNewUser(readFDs))
         {
-            //if (validPassword())
-            //    acceptConnection(masterFDs, fdMax);
-            //else
-            //    std::cout << "Invalid password" << std::endl;
-            acceptConnection(masterFDs, fdMax);
+            if (validPassword(readFDs))
+                acceptConnection(masterFDs, fdMax);
+            else
+                std::cout << "Invalid password" << std::endl;
         }
 
         dataReceived(masterFDs, readFDs);
@@ -121,6 +120,12 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
                 throw SocketReceivingError();
         }
     }
+}
+
+int Server::validPassword(fd_set& readFDs)
+{
+    // to be changed
+    return (1);
 }
 
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
