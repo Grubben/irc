@@ -71,6 +71,7 @@ public:
     ~Server();
 
     void run();
+    void    broadcast(const std::string msg);
 };
 
 #endif

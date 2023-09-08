@@ -81,6 +81,18 @@ void Server::run()
     }
 }
 
+void    Server::broadcast(const std::string msg)
+{
+    std::vector<int>::iterator minit = clientFDs.begin();
+    for (; minit != clientFDs.end(); minit++)
+    {
+        // if (*it != *minit)
+        if (send(*minit, msg.c_str(), msg.length(), 0) == -1)
+            throw SocketSendingError();
+    }
+
+}
+
 void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 {
     std::vector<int>::iterator it = clientFDs.begin();
@@ -93,14 +105,10 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             if(len > 0)
             {
                 message[len] = 0;
-                std::cout << message;
-                std::vector<int>::iterator minit = clientFDs.begin();
-                for (; minit != clientFDs.end(); minit++)
-                {
-                    // if (*it != *minit)
-                    if (send(*minit, message, len, 0) == -1)
-                        throw SocketSendingError();
-                }
+                std::cout << message << std::ends;
+
+                broadcast(message);
+
             }
             else if (len == 0)
             {
