@@ -55,11 +55,16 @@ private:
     std::list<User> _users;
     std::vector<Channel> _channels;
 
+    std::vector<int> clientFDs;
+
     sockaddr_in _address;
     socklen_t addr_size;
     int _socket;
 
     Server();
+    int isNewUser(fd_set& readFDs);
+    void acceptConnection(fd_set& masterFDs, int& fdMax);
+    void dataReceived(fd_set& masterFDs, fd_set& readFDs);
 
 public:
     Server(ServerEnvironment serverEnvironment);

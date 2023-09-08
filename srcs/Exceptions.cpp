@@ -31,6 +31,11 @@ const char* SocketSendingError::what() const throw()
     return "Socket sending error";
 }
 
+const char* SocketReceivingError::what() const throw()
+{
+    return "Socket receiving error";
+}
+
 const char* ParserArgCountError::what() const throw()
 {
     return "Usage: ./ircserv [port]";

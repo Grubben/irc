@@ -39,6 +39,12 @@ class SocketSendingError : public std::exception
         virtual const char* what() const throw();
 };
 
+class SocketReceivingError : public std::exception
+{
+    public:
+        virtual const char* what() const throw();
+};
+
 class ParserArgCountError : public std::exception
 {
     public:

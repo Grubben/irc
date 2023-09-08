@@ -47,78 +47,95 @@ Server::Server(ServerEnvironment serverEnvironment)
 
 void Server::run()
 {
+    fd_set  masterFDs;
+    fd_set  readFDs;
+
+    FD_ZERO(&masterFDs);
+    FD_ZERO(&readFDs);
+    FD_SET(_socket, &masterFDs);
+    int fdMax = _socket;
+    
+    // Neccessary??
     struct timeval tv;
-
-    fd_set  master;
-    fd_set  readfds;
-
     tv.tv_sec = 200;
     tv.tv_usec = 500000;
 
-    std::vector<int> clientfds;
-
-    FD_ZERO(&master);
-    FD_ZERO(&readfds);
-
-
-    FD_SET(_socket, &master);
-
-    int fdmax = _socket;
-
     while (true)
     {
-        readfds = master;
+        readFDs = masterFDs;
 
-        if (select(fdmax + 1, &readfds, NULL, NULL, &tv) == 0)
+        if (select(fdMax + 1, &readFDs, NULL, NULL, NULL) == 0)
             continue;
         std::cout << "Poll triggered" << std::endl;
 
-        if (FD_ISSET(_socket, &readfds)) // New user
+        if (isNewUser(readFDs))
         {
-            std::cout << "New connection" << std::endl;
-            int newuser_socket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
-            fcntl(newuser_socket, F_SETFL, O_NONBLOCK);
-
-            clientfds.push_back(newuser_socket);
-
-            //Adding new user to list
-            _users.push_back(User(newuser_socket));
-
-            FD_SET(newuser_socket, &master);
-            fdmax = newuser_socket + 1;
+            //if (validPassword())
+            //    acceptConnection(masterFDs, fdMax);
+            //else
+            //    std::cout << "Invalid password" << std::endl;
+            acceptConnection(masterFDs, fdMax);
         }
 
-        std::vector<int>::iterator it = clientfds.begin();
+        dataReceived(masterFDs, readFDs);
+    }
+}
 
-        for (; it != clientfds.end(); it++)
+void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
+{
+    std::vector<int>::iterator it = clientFDs.begin();
+    for (; it != clientFDs.end(); it++)
+    {
+        if (FD_ISSET(*it, &readFDs))
         {
-            if (FD_ISSET(*it, &readfds))
+            char message[1024] = "";
+            int len = recv(*it, message, 1024, 0);
+            if(len > 0)
             {
-                char message[1024] = "";
-                int len;
-                if((len = recv(*it, message, 1024, 0)) > 0)
+                message[len] = 0;
+                std::cout << message;
+                std::vector<int>::iterator minit = clientFDs.begin();
+                for (; minit != clientFDs.end(); minit++)
                 {
-                    message[len] = 0;
-                    std::cout << message;
-                    std::vector<int>::iterator minit = clientfds.begin();
-                    for (; minit != clientfds.end(); minit++)
-                    {
-                        if (*it != *minit)
-                            send(*minit, message, len, 0);
-                    }
-                }
-                else if (len == 0)
-                {
-                    std::cout << "Client has left the network" << std::endl;
-                    close(*it);
-                    FD_CLR(*it, &master);
-                    //TODO: remove user from _users
+                    // if (*it != *minit)
+                    if (send(*minit, message, len, 0) == -1)
+                        throw SocketSendingError();
                 }
             }
+            else if (len == 0)
+            {
+                std::cout << "Client has left the network" << std::endl;
+                close(*it);
+                FD_CLR(*it, &masterFDs);
+                //TODO: remove user from _users
+            }
+            else
+                throw SocketReceivingError();
         }
     }
 }
 
+void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
+{
+    std::cout << "New connection" << std::endl;
+    int newUserSocket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
+    if (newUserSocket == -1)
+        throw SocketAcceptingError();
+    fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
+
+    clientFDs.push_back(newUserSocket);
+
+    //Adding new user to list
+    _users.push_back(User(newUserSocket));
+
+    FD_SET(newUserSocket, &masterFDs);
+    fdMax = newUserSocket + 1;
+}
+
+int Server::isNewUser(fd_set& readFDs)
+{
+    return (FD_ISSET(_socket, &readFDs));
+}
 
 Server::Server()
 {
@@ -127,4 +144,5 @@ Server::Server()
 Server::~Server()
 {
     close(_socket);
+    
 }
