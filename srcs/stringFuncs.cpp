@@ -1,4 +1,4 @@
-#include <stringFuncs.hpp>
+#include "stringFuncs.hpp"
 
 std::string ltrim(std::string str)
 {

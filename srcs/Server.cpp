@@ -65,6 +65,7 @@ void Server::run()
             continue;
         std::cout << "Poll triggered" << std::endl;
 
+        dataReceived(masterFDs, readFDs);
         if (isNewUser(readFDs))
         {
             if (validPassword(readFDs))
@@ -72,8 +73,6 @@ void Server::run()
             else
                 std::cout << "Invalid password" << std::endl;
         }
-
-        msg = dataReceived(masterFDs, readFDs);
 
         // broadcast(msg);
     }
@@ -90,23 +89,20 @@ void    Server::broadcast(const std::string msg)
     }
 }
 
-std::string Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
+void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 {
-    std::string msg;
-
     std::vector<int>::iterator it = clientFDs.begin();
     for (; it != clientFDs.end(); it++)
     {
         if (FD_ISSET(*it, &readFDs))
         {
             char message[1024] = "";
-            int len = recv(*it, message, 1024, 0);
+            int len = recv(*it, message, sizeof(message) - 1, 0);
             if(len > 0)
             {
                 message[len] = 0;
-
+                messageHandler(message);
                 std::cout << message << std::ends;
-                msg = message;
             }
             else if (len == 0)
             {
@@ -119,7 +115,6 @@ std::string Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
                 throw SocketReceivingError();
         }
     }
-    return msg;
 }
 
 int Server::validPassword(fd_set& readFDs)

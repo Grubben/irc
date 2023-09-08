@@ -65,7 +65,7 @@ private:
     int isNewUser(fd_set& readFDs);
     int validPassword(fd_set& readFDs);
     void acceptConnection(fd_set& masterFDs, int& fdMax);
-    std::string dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    void dataReceived(fd_set& masterFDs, fd_set& readFDs);
 
 
 public:
