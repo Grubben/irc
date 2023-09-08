@@ -1,6 +1,6 @@
 #include "ServerEnvironment.hpp"
 
-ServerEnvironment::ServerEnvironment(int port)
+ServerEnvironment::ServerEnvironment(int port, std::string password)
 {
     _portNumber = port;
     
@@ -12,6 +12,7 @@ ServerEnvironment::ServerEnvironment(int port)
     _maxNicknameLength = 32;
     _maxMessageLength = 256;
     _maxTopicLength = 1024;
+    _password = password;
 }
 
 ServerEnvironment::ServerEnvironment()
@@ -62,3 +63,7 @@ int ServerEnvironment::getMaxTopicLength() const
     return _maxTopicLength;
 }
 
+std::string ServerEnvironment::getPassword() const
+{
+    return _password;
+}

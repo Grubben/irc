@@ -57,6 +57,11 @@ class ParserPortNumberError : public std::exception
         virtual const char* what() const throw();
 };
 
+class ParserPasswordError : public std::exception
+{
+    public:
+        virtual const char* what() const throw();
+};
 
 
 

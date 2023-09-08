@@ -6,19 +6,20 @@
 class ServerEnvironment
 {
 private:
-    int _portNumber;
-    int _maxUsers;
-    int _maxChannels;
-    int _maxChannelUsers;
-    int _maxChannelNameLength;
-    int _maxNicknameLength;
-    int _maxMessageLength;
-    int _maxTopicLength;
+    int             _portNumber;
+    int             _maxUsers;
+    int             _maxChannels;
+    int             _maxChannelUsers;
+    int             _maxChannelNameLength;
+    int             _maxNicknameLength;
+    int             _maxMessageLength;
+    int             _maxTopicLength;
+    std::string     _password;
 
 
 public:
     ServerEnvironment();
-    ServerEnvironment(int port);
+    ServerEnvironment(int port, std::string password);
     ~ServerEnvironment();
     int getPortNumber() const;
     int getMaxUsers() const;
@@ -28,6 +29,7 @@ public:
     int getMaxNicknameLength() const;
     int getMaxMessageLength() const;
     int getMaxTopicLength() const;
+    std::string getPassword() const;
 
 };
 

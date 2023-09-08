@@ -1,6 +1,8 @@
 #include "Server.hpp"
 
 void parseInput(int argc, char **argv);
+void checkPortNumber(char *port);
+void checkPassword(char *password);
 
 int main(int argc, char **argv)
 {
@@ -9,7 +11,7 @@ int main(int argc, char **argv)
         parseInput(argc, argv);
 
         // init server environment
-        ServerEnvironment serverEnvironment(atoi(argv[1]));
+        ServerEnvironment serverEnvironment(atoi(argv[1]), argv[2]);
 
         // start server
         Server server(serverEnvironment);
@@ -28,19 +30,33 @@ int main(int argc, char **argv)
     return 0;
 }
 
+void checkPortNumber(char *port)
+{
+    for (int i = 0; port[i]; i++)
+    {
+        if (!isdigit(port[i]))
+            throw ParserPortNumberError();
+    }
+
+    if (atoi(port) < 0 || atoi(port) > 65535)
+        throw ParserPortNumberError();
+}
+
+void checkPassword(char *password)
+{
+    if (strlen(password) > 32)
+        throw ParserPasswordError();
+}
+
 void parseInput(int argc, char **argv)
 {
-    // Vai ser preciso melhorar o parser do input tendo em conta a password
-    if (argc != 2)
+    // change this in the end to only work with password in , argc != 3
+    if (argc > 3 || argc < 2)
         throw ParserArgCountError();
-    for (int i = 0; argv[1][i]; i++)
-    {
-        if (!isdigit(argv[1][i]))
-        {
-            std::cerr << "Port must be a number" << std::endl;
-            exit(1);
-        }
-    }
-    if (atoi(argv[1]) < 0 || atoi(argv[1]) > 65535)
-        throw ParserPortNumberError();
+
+    checkPortNumber(argv[1]);
+    if (argc == 3)
+        checkPassword(argv[2]);
+    else if (argc == 2)
+        argv[2] = (char *)"";
 }

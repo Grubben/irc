@@ -67,11 +67,10 @@ void Server::run()
 
         if (isNewUser(readFDs))
         {
-            //if (validPassword())
-            //    acceptConnection(masterFDs, fdMax);
-            //else
-            //    std::cout << "Invalid password" << std::endl;
-            acceptConnection(masterFDs, fdMax);
+            if (validPassword(readFDs))
+                acceptConnection(masterFDs, fdMax);
+            else
+                std::cout << "Invalid password" << std::endl;
         }
 
         msg = dataReceived(masterFDs, readFDs);
@@ -121,6 +120,12 @@ std::string Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
         }
     }
     return msg;
+}
+
+int Server::validPassword(fd_set& readFDs)
+{
+    // to be changed
+    return (1);
 }
 
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
