@@ -2,7 +2,7 @@
 
 std::string ltrim(std::string str)
 {
-    std::size_t found = str.find_first_not_of(" \t");
+    std::size_t found = str.find_first_not_of("\t");
 
     if (found == std::string::npos)
         return str;
@@ -35,22 +35,36 @@ std::string trim(std::string str, std::string undesired)
 }
 
 
-std::vector<std::string>    split(std::string str)
+std::vector<std::string> split(const std::string input, const std::string delimiter)
 {
-    std::vector<std::string>    divided;
+    std::vector<std::string> result;
+    size_t start = 0;
+    size_t end = input.find(delimiter);
 
-    str = trim(str);
-
-    while (std::size_t found = str.find(" "))
+    while (end != std::string::npos)
     {
-        if (found == std::string::npos)
-            break;
+        if (input.substr(start, end - start) != "")
+        {
+            result.push_back(input.substr(start, end - start));
+        }
+        start = end + delimiter.length();
+        while (start < input.length() && input[start] == ' ')
+        {
+            start++;
+        }
 
-        divided.push_back(str.substr(0, found));
-
-        str = str.substr(found);
-        str = ltrim(str);
+        end = input.find(delimiter, start);
     }
-    divided.push_back(str);
-    return divided;
+    if (start < input.length())
+    {
+        result.push_back(input.substr(start));
+    }
+    return result;
+}
+
+int isDigit(char c)
+{
+    if (c >= '0' && c <= '9')
+        return 1;
+    return 0;
 }

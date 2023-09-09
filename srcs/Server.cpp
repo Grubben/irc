@@ -55,8 +55,6 @@ void Server::run()
     FD_ZERO(&readFDs);
     FD_SET(_socket, &masterFDs);
     int fdMax = _socket;
-
-
     while (true)
     {
         readFDs = masterFDs;
@@ -65,7 +63,6 @@ void Server::run()
             continue;
         std::cout << "Poll triggered" << std::endl;
 
-        dataReceived(masterFDs, readFDs);
         if (isNewUser(readFDs))
         {
             if (validPassword(readFDs))
@@ -73,6 +70,7 @@ void Server::run()
             else
                 std::cout << "Invalid password" << std::endl;
         }
+        dataReceived(masterFDs, readFDs);
 
         // broadcast(msg);
     }
@@ -102,7 +100,7 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             {
                 message[len] = 0;
                 messageHandler(message);
-                std::cout << message << std::ends;
+                //std::cout << message << std::ends;
             }
             else if (len == 0)
             {

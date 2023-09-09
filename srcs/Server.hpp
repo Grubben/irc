@@ -5,6 +5,7 @@
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
+#include "stringFuncs.hpp"
 
 #include <fcntl.h>
 #include <list>
@@ -13,6 +14,8 @@
 #include <cstring>
 #include <errno.h>
 #include <unistd.h>
+#include <vector>
+#include <algorithm>
 
 
 #include <netdb.h>
@@ -75,5 +78,7 @@ public:
     void run();
     void    broadcast(const std::string msg);
 };
+
+void messageHandler(std::string message);
 
 #endif

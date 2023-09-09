@@ -2,7 +2,7 @@
 
 void parseInput(int argc, char **argv);
 void checkPortNumber(char *port);
-void checkPassword(char *password);
+void checkPassword(std::string password);
 
 int main(int argc, char **argv)
 {
@@ -34,7 +34,7 @@ void checkPortNumber(char *port)
 {
     for (int i = 0; port[i]; i++)
     {
-        if (!isdigit(port[i]))
+        if (!isDigit(port[i]))
             throw ParserPortNumberError();
     }
 
@@ -42,10 +42,12 @@ void checkPortNumber(char *port)
         throw ParserPortNumberError();
 }
 
-void checkPassword(char *password)
+void checkPassword(std::string password)
 {
-    if (strlen(password) > 32)
-        throw ParserPasswordError();
+    if (password.length() > 32)
+        throw ParserPasswordTooBigError();
+    if (password.empty())
+		throw ParserNoPasswordError();
 }
 
 void parseInput(int argc, char **argv)
