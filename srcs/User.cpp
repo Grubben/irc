@@ -7,7 +7,7 @@ User::User(void)
 
 User::User(Server* server, int userSocket)
 	: _server(server)
-	, _socket(userSocket)
+	, listenSocket(userSocket)
 {
 	std::cout << "User constructor called" << std::endl;
 }
@@ -21,6 +21,7 @@ User::User(const User& copy)
 User::~User(void)
 {
 	std::cout << "User destructor called" << std::endl;
+	close(listenSocket);
 }
 
 User&	User::operator= (const User& copy)
@@ -29,19 +30,19 @@ User&	User::operator= (const User& copy)
 	if (this != &copy)
 	{
 		this->_server = copy._server;
-		this->_socket = copy._socket;
+		this->listenSocket = copy.listenSocket;
 	}
 	return (*this);
 }
 
 bool    User::operator==(const User user)
 {
-    return this->_socket == user.getSocket();
+    return this->listenSocket == user.getSocket();
 }
 
 int User::getSocket() const
 {
-    return _socket;
+    return listenSocket;
 }
 
 void    User::quitServer()
@@ -72,4 +73,15 @@ void User::says(std::string message)
 
     }
 }
+
+// void    Server::broadcast(const std::string msg)
+// {
+//     std::vector<User>::iterator it = users.begin();
+//     for (; it != users.end(); it++)
+//     {
+//         // if (*it != *it)
+//         if (send(*it, msg.c_str(), msg.length(), 0) == -1)
+//             throw SocketSendingError();
+//     }
+// }
 

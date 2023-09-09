@@ -6,6 +6,7 @@ void checkPassword(char *password);
 
 int main(int argc, char **argv)
 {
+    std::cout << std::unitbuf;
     try
     {
         parseInput(argc, argv);

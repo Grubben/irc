@@ -26,6 +26,8 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdio.h>
+#include <errno.h>
 
 #define BACKLOG 10
 
@@ -58,7 +60,7 @@ private:
 
     sockaddr_in _address;
     socklen_t addr_size;
-    int _socket;
+    int listenSocket;
 
     Server();
     int isNewUser(fd_set& readFDs);
@@ -81,6 +83,7 @@ public:
     // std::list<int>  clientFDs;
     std::list<User> users;
     // static std::vector<Channel> _channels;
+    int _fdMax;
 };
 
 #endif

@@ -10,7 +10,7 @@ class User
 {
 private:
 	Server*	_server;
-	int		_socket;
+	int		listenSocket;
 	User();
 public:
 	User(Server* server, int userSocket);
