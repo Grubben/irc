@@ -108,8 +108,7 @@ void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
 
-    // User    newuser(this, newUserSocket);
-    // users.push_back(newuser);
+    users.push_back( new User(this, newUserSocket) );
 }
 
 std::string receiveMsg(int rcvFD)
@@ -142,6 +141,7 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             {
                 std::cout << "Client has left the network. fd: " << i << std::endl;
                 FD_CLR(i, &masterFDs);
+                this->disconnect(i);
             }
             else
             {
@@ -166,20 +166,21 @@ Server::~Server()
     
 }
 
-void    Server::remove(User user)
-{
-    std::cout << "Server is removing user with fd: " << user.getSocket() << std::endl;
-    // std::cout << users.size() << std::endl;
-    users.remove(user);
-    // std::cout << users.size() << std::endl;
 
-    // std::list<User>::iterator it = users.begin();
-    // for (; it != users.end(); it++)
-    // {
-        // if (it->getSocket() == user.getSocket())
-        // {
-        //     users.remove(user.getSocket());
-        // }
-    // }
+void    Server::disconnect(const int sock)
+{
+    std::cout << "Server is removing user with fd: " << sock << std::endl;
+    std::cout << "users size: " << users.size() << std::endl;
+
+    // std::vector<User*>::iterator it = users.begin();
+    for (std::vector<User*>::iterator it = users.begin(); it != users.end(); it++)
+    {
+        if ((*it)->getSocket() == sock)
+        {
+            delete *it;
+            users.erase(it);
+            return;
+        }
+    }
 
 }

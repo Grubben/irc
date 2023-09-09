@@ -10,8 +10,9 @@ class User
 {
 private:
 	Server*	_server;
-	int		listenSocket;
+	int		sock;
 	User();
+
 public:
 	User(Server* server, int userSocket);
 	User(const User& copy);
@@ -19,11 +20,14 @@ public:
 
 	User&	operator= (const User& copy);
 
-    bool    operator==(const User user);
+    bool    operator==(const int sock);
 
 	int getSocket() const;
 
     void    quitServer();
 
     void    says(std::string message);
+
+	std::string	name;
+	std::string	nick;
 };

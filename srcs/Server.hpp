@@ -75,13 +75,13 @@ public:
 
     void    run();
 
-    void    remove(User user);
+    void    disconnect(int sock);
 
     void    broadcast(const std::string msg);
     
 
     // std::list<int>  clientFDs;
-    std::list<User> users;
+    std::vector<User*> users;
     // static std::vector<Channel> _channels;
     int _fdMax;
 };

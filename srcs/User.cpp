@@ -7,7 +7,7 @@ User::User(void)
 
 User::User(Server* server, int userSocket)
 	: _server(server)
-	, listenSocket(userSocket)
+	, sock(userSocket)
 {
 	std::cout << "User constructor called" << std::endl;
 }
@@ -21,7 +21,7 @@ User::User(const User& copy)
 User::~User(void)
 {
 	std::cout << "User destructor called" << std::endl;
-	close(listenSocket);
+	close(sock);
 }
 
 User&	User::operator= (const User& copy)
@@ -30,19 +30,21 @@ User&	User::operator= (const User& copy)
 	if (this != &copy)
 	{
 		this->_server = copy._server;
-		this->listenSocket = copy.listenSocket;
+		this->sock = copy.sock;
 	}
 	return (*this);
 }
 
-bool    User::operator==(const User user)
+bool    User::operator==(const int sock)
 {
-    return this->listenSocket == user.getSocket();
+    return this->sock == sock;
 }
+
+
 
 int User::getSocket() const
 {
-    return listenSocket;
+    return sock;
 }
 
 void    User::quitServer()
