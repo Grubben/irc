@@ -52,13 +52,13 @@ void Server::run()
     std::string msg;
 
     FD_ZERO(&masterFDs);
-    // FD_ZERO(&readFDs);
     FD_SET(_socket, &masterFDs);
     int fdMax = _socket;
     int n;
 
     while (true)
     {
+        FD_ZERO(&readFDs);
         readFDs = masterFDs;
 
         n = select(fdMax + 1, &readFDs, NULL, NULL, NULL);
@@ -69,10 +69,7 @@ void Server::run()
 
         if (isNewUser(readFDs))
         {
-            // if (validPassword(readFDs))
-                acceptConnection(masterFDs, fdMax);
-            // else
-            //     std::cout << "Invalid password" << std::endl;
+            acceptConnection(masterFDs, fdMax);
             if (n == 1)
                 continue;
         }
@@ -102,10 +99,11 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
     std::list<User>::iterator it = users.begin();
     for (; it != users.end(); it++)
     {
-        if (FD_ISSET(it->getSocket(), &readFDs))
+        int itfd = it->getSocket();
+        if (FD_ISSET(itfd, &readFDs))
         {
             char message[1024] = "";
-            int len = recv(it->getSocket(), message, sizeof(message) - 1, 0);
+            int len = recv(itfd, message, sizeof(message) - 1, 0);
 
             if(len > 0)
             {
@@ -118,8 +116,8 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             {
                 this->remove(*it);
                 std::cout << "Client has left the network" << std::endl;
-                close(it->getSocket());
-                FD_CLR(it->getSocket(), &masterFDs);
+                close(itfd);
+                FD_CLR(itfd, &masterFDs);
                 //TODO: remove user from _users
             }
             else
@@ -136,20 +134,19 @@ bool Server::validPassword(fd_set& readFDs)
 
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
 {
-    std::cout << "New connection. Creating new user" << std::endl;
-    int newUserSocket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
+    std::cout << "New connection" << std::endl;
+    int newUserSocket = accept(_socket, (sockaddr *)&_address, &addr_size);
     if (newUserSocket == -1)
         throw SocketAcceptingError();
     fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
-
-
-    // clientFDs.push_back(newUserSocket);
-    User    newuser(this, newUserSocket);
-    users.push_back(newuser);
-
+    std::cout << "Creating new user with fd: " << newUserSocket << std::endl;
 
     FD_SET(newUserSocket, &masterFDs);
     fdMax = newUserSocket + 1;
+
+
+    User    newuser(this, newUserSocket);
+    users.push_back(newuser);
 }
 
 int Server::isNewUser(fd_set& readFDs)

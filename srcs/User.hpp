@@ -1,6 +1,4 @@
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
-
+#pragma once
 #include <iostream>
 #include <unistd.h>
 #include <vector>
@@ -8,25 +6,24 @@
 
 class Server;
 
-// There will be a user linked list to store all the clients connected to the server
 class User
 {
 private:
-    Server*  _server;
-    int     _socket;
-    User();
-
+	Server*	_server;
+	int		_socket;
+	User();
 public:
-    User(Server* server, int userSocket);
-    ~User();
+	User(Server* server, int userSocket);
+	User(const User& copy);
+	virtual ~User(void);
 
-    int getSocket() const;
+	User&	operator= (const User& copy);
+
+    bool    operator==(const User user);
+
+	int getSocket() const;
 
     void    quitServer();
 
     void    says(std::string message);
-
-    bool    operator==(const User user);
 };
-
-#endif

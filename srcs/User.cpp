@@ -1,15 +1,42 @@
 #include "User.hpp"
 
-User::User(Server* server, int userSocket)
+User::User(void)
 {
-    _server = server;
-    _socket = userSocket;
+	std::cout << "User constructor called" << std::endl;
 }
 
-User::~User()
+User::User(Server* server, int userSocket)
+	: _server(server)
+	, _socket(userSocket)
 {
-    close(_socket);
-    _socket = 0;
+	std::cout << "User constructor called" << std::endl;
+}
+
+User::User(const User& copy)
+{
+	std::cout << "User copy constructor called" << std::endl;
+	*this = copy;
+}
+
+User::~User(void)
+{
+	std::cout << "User destructor called" << std::endl;
+}
+
+User&	User::operator= (const User& copy)
+{
+	std::cout << "User assignment operator called" << std::endl;
+	if (this != &copy)
+	{
+		this->_server = copy._server;
+		this->_socket = copy._socket;
+	}
+	return (*this);
+}
+
+bool    User::operator==(const User user)
+{
+    return this->_socket == user.getSocket();
 }
 
 int User::getSocket() const
@@ -46,7 +73,3 @@ void User::says(std::string message)
     }
 }
 
-bool    User::operator==(const User user)
-{
-    return this->_socket == user.getSocket();
-}

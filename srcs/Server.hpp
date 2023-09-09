@@ -77,8 +77,8 @@ public:
 
     void    broadcast(const std::string msg);
     
-    
-    
+
+    // std::list<int>  clientFDs;
     std::list<User> users;
     // static std::vector<Channel> _channels;
 };
