@@ -65,10 +65,7 @@ void Server::run()
 
         if (isNewUser(readFDs))
         {
-            if (validPassword(readFDs))
-                acceptConnection(masterFDs, fdMax);
-            else
-                std::cout << "Invalid password" << std::endl;
+            acceptConnection(masterFDs, fdMax);
         }
         dataReceived(masterFDs, readFDs);
 
@@ -78,8 +75,8 @@ void Server::run()
 
 void    Server::broadcast(const std::string msg)
 {
-    std::vector<int>::iterator minit = clientFDs.begin();
-    for (; minit != clientFDs.end(); minit++)
+    std::vector<int>::iterator minit = _clientFDs.begin();
+    for (; minit != _clientFDs.end(); minit++)
     {
         // if (*it != *minit)
         if (send(*minit, msg.c_str(), msg.length(), 0) == -1)
@@ -89,8 +86,8 @@ void    Server::broadcast(const std::string msg)
 
 void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 {
-    std::vector<int>::iterator it = clientFDs.begin();
-    for (; it != clientFDs.end(); it++)
+    std::vector<int>::iterator it = _clientFDs.begin();
+    for (; it != _clientFDs.end(); it++)
     {
         if (FD_ISSET(*it, &readFDs))
         {
@@ -115,12 +112,6 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
     }
 }
 
-int Server::validPassword(fd_set& readFDs)
-{
-    // to be changed
-    return (1);
-}
-
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
 {
     std::cout << "New connection" << std::endl;
@@ -129,7 +120,7 @@ void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
         throw SocketAcceptingError();
     fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
 
-    clientFDs.push_back(newUserSocket);
+    _clientFDs.push_back(newUserSocket);
 
     //Adding new user to list
     _users.push_back(User(newUserSocket));
@@ -143,6 +134,23 @@ int Server::isNewUser(fd_set& readFDs)
     return (FD_ISSET(_socket, &readFDs));
 }
 
+
+
+std::string ServerMessage::getPrefix() const
+{
+    return _prefix;
+}
+
+std::string ServerMessage::getCommand() const
+{
+    return _command;
+}
+
+std::vector<std::string> ServerMessage::getParams() const
+{
+    return _params;
+}
+
 Server::Server()
 {
 }
@@ -151,4 +159,14 @@ Server::~Server()
 {
     close(_socket);
     
+}
+
+ServerEnvironment Server::getEnvironment() const
+{
+    return _environment;
+}
+
+std::vector<int> Server::getClientFDs() const
+{
+    return _clientFDs;
 }

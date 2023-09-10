@@ -62,6 +62,12 @@ std::vector<std::string> split(const std::string input, const std::string delimi
     return result;
 }
 
+std::string removeCharacterFromString(std::string str, char toRemove)
+{
+    str.erase(std::remove(str.begin(), str.end(), toRemove), str.end());
+    return str;
+}
+
 int isDigit(char c)
 {
     if (c >= '0' && c <= '9')

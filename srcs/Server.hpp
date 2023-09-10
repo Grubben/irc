@@ -6,6 +6,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "stringFuncs.hpp"
+#include "ServerMessage.hpp"
 
 #include <fcntl.h>
 #include <list>
@@ -15,8 +16,6 @@
 #include <errno.h>
 #include <unistd.h>
 #include <vector>
-#include <algorithm>
-
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -30,6 +29,9 @@
 #include <unistd.h>
 
 #define BACKLOG 10
+
+#define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
+#define SERVER_NAME "ONossoIRC" // por mudar
 
 /*
     To deal with struct sockaddr, programmers created
@@ -58,7 +60,7 @@ private:
     std::list<User> _users;
     std::vector<Channel> _channels;
 
-    std::vector<int> clientFDs;
+    std::vector<int> _clientFDs;
 
     sockaddr_in _address;
     socklen_t addr_size;
@@ -66,19 +68,23 @@ private:
 
     Server();
     int isNewUser(fd_set& readFDs);
-    int validPassword(fd_set& readFDs);
     void acceptConnection(fd_set& masterFDs, int& fdMax);
     void dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    void messageHandler(std::string message);
 
 
 public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
 
-    void run();
+    void    passwordVerification(std::string password);
+    void    run();
     void    broadcast(const std::string msg);
+    
+    ServerEnvironment getEnvironment() const;
+    std::vector<int> getClientFDs() const;
 };
 
-void messageHandler(std::string message);
+void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);
 
 #endif
