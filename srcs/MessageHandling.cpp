@@ -1,12 +1,5 @@
 #include "Server.hpp"
 
-int capabilityNegotiation();
-int connectionRegistration(std::list<ServerMessage> messageList, Server* server);
-int miscellaneousMessages(std::list<ServerMessage> messageList, Server *server);
-int userBasedQueries(std::list<ServerMessage> messageList, Server *server);
-int sendingMessages(std::list<ServerMessage> messageList, Server *server);
-int channelOperations(std::list<ServerMessage> messageList, Server *server);
-
 void User::messageHandler(std::string message, Server *server)
 {
     std::vector<std::string> messageBuffer = split(message, "\r\n");
@@ -39,32 +32,31 @@ void User::messageHandler(std::string message, Server *server)
     }
 }
 
-int capabilityNegotiation()
+int User::capabilityNegotiation()
 {
     // The server does not provide capability negotiation I THINK
     // https://ircv3.net/specs/extensions/capability-negotiation.html
     return (0);
 }
 
-void passwordVerification(std::string password, Server* server)
+void credentialsVerification(std::string password, Server* server)
 {
     if (password == server->getEnvironment().getPassword())
     {
-        // TODO parsing de nome, pass e user
-        // sendNumericResponse(server, 001, "");
+        
         std::cout << "password verified" << std::endl;
     }
     else
         std::cout << "password not verified" << std::endl;
 }
 
-int connectionRegistration(std::list<ServerMessage> messageList, Server* server)
+int User::connectionRegistration(std::list<ServerMessage> messageList, Server* server)
 {
     (void) server;
     if (messageList.front().getCommand() == "PASS")
     {
         std::cout << "password verification and load" << std::endl;
-        passwordVerification(messageList.front().getParams().back(), server);
+        credentialsVerification(messageList.front().getParams().back(), server);
         return (1);
     }
     else if (messageList.front().getCommand() == "NICK")
@@ -93,7 +85,7 @@ int connectionRegistration(std::list<ServerMessage> messageList, Server* server)
     return (0);
 }
 
-int channelOperations(std::list<ServerMessage> messageList, Server *server)
+int User::channelOperations(std::list<ServerMessage> messageList, Server *server)
 {
     (void) server;
     if (messageList.front().getCommand() == "JOIN")
@@ -143,7 +135,7 @@ int channelOperations(std::list<ServerMessage> messageList, Server *server)
     return (0);
 }
 
-int sendingMessages(std::list<ServerMessage> messageList, Server *server)
+int User::sendingMessages(std::list<ServerMessage> messageList, Server *server)
 {
     (void) server;
     if (messageList.front().getCommand() == "PRIVMSG")
@@ -159,7 +151,7 @@ int sendingMessages(std::list<ServerMessage> messageList, Server *server)
     return (0);
 }
 
-int userBasedQueries(std::list<ServerMessage> messageList, Server *server)
+int User::userBasedQueries(std::list<ServerMessage> messageList, Server *server)
 {
     (void) server;
     if (messageList.front().getCommand() == "WHO")
@@ -180,7 +172,7 @@ int userBasedQueries(std::list<ServerMessage> messageList, Server *server)
     return (0);
 }
 
-int miscellaneousMessages(std::list<ServerMessage> messageList, Server *server)
+int User::miscellaneousMessages(std::list<ServerMessage> messageList, Server *server)
 {
     (void) server;
     if (messageList.front().getCommand() == "KILL")

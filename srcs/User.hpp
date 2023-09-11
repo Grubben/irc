@@ -2,6 +2,8 @@
 #include <iostream>
 #include <unistd.h>
 #include <vector>
+#include <list>
+#include "ServerMessage.hpp"
 #include "stringFuncs.hpp"
 
 class Server;
@@ -14,6 +16,12 @@ private:
 	User();
 
 	void 	messageHandler(std::string message, Server *server);
+	int capabilityNegotiation();
+	int connectionRegistration(std::list<ServerMessage> messageList, Server* server);
+	int miscellaneousMessages(std::list<ServerMessage> messageList, Server *server);
+	int userBasedQueries(std::list<ServerMessage> messageList, Server *server);
+	int sendingMessages(std::list<ServerMessage> messageList, Server *server);
+	int channelOperations(std::list<ServerMessage> messageList, Server *server);
 	
 public:
 	User(Server* server, int userSocket);
