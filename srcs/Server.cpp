@@ -143,7 +143,7 @@ void Server::dataReceived(fd_set &readFDs)
             else
             {
                 //TODO: meter aqui o message Handler com o .says()
-                getUserBySocket(i).says(msg, this);
+                (*getUserBySocket(i))->says(msg, this);
                 std::cout << msg;
             }
         }
@@ -182,35 +182,30 @@ Server::~Server()
     
 }
 
-
-User&	Server::getUserBySocket(int socket)
+std::list<User*>::iterator	Server::getUserBySocket(int socket)
 {
     for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         if ((*it)->getSocket() == socket)
         {
-            return *(*it);
+            return it;
         }
     }
     throw SocketUnableToFindUser();
 }
 
+
 void    Server::disconnect(const int sock)
 {
     std::cout << "Server is removing user with fd: " << sock << std::endl;
+
+    std::list<User*>::iterator   deleteme = getUserBySocket(sock);
+
+    delete *deleteme;
+
+    _users.erase(deleteme);
+
     std::cout << "users size: " << _users.size() << std::endl;
-
-    // std::vector<User*>::iterator it = users.begin();
-    for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
-    {
-        if ((*it)->getSocket() == sock)
-        {
-            delete *it;
-            _users.erase(it);
-            return;
-        }
-    }
-
 }
 ServerEnvironment Server::getEnvironment() const
 {

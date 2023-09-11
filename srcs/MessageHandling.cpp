@@ -50,19 +50,8 @@ void passwordVerification(std::string password, Server* server)
 {
     if (password == server->getEnvironment().getPassword())
     {
-        // sendNumericResponse(server->getClientFDs().back(), 376, "Password match! Welcome to the server!");
-        // make user load here steps:
-        //      1. create user using constructor
-        //      2. add pass to user
-        //      4. verify nick if error then destruct user
-        //      5. verify user if error then destruct user
-        //      3. pop
-        //      6. add nick to user
-        //      7. pop
-        //      8. add user to user
-        //      9. don't pop
-        //      10. add socket to user
-        //      10. add user to server 
+        // TODO parsing de nome, pass e user
+        // sendNumericResponse(server, 001, "");
         std::cout << "password verified" << std::endl;
     }
     else

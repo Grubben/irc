@@ -92,7 +92,8 @@ public:
     socklen_t               getAddrSize() const;
     int                     getSocket() const;
 
-    User&	                getUserBySocket(int socket);
+    // User&	                getUserBySocket(int socket);
+    std::list<User*>::iterator	getUserBySocket(int socket);
 
 
     void                    setEnvironment(ServerEnvironment environment);
