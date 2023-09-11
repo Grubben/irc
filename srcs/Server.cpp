@@ -80,9 +80,10 @@ void Server::run()
         if (FD_ISSET(listenSocket, &readFDs))
         {
             acceptConnection(_fdMax);
-            if (n == 1)
-                continue;
+            // if (n == 1)
+            //     continue;
         }
+        dataReceived(masterFDs, readFDs);
 
 
         dataReceived(readFDs);
@@ -141,6 +142,7 @@ void Server::dataReceived(fd_set &readFDs)
                 std::cout << "Client has left the network. fd: " << i << std::endl;
                 FD_CLR(i, &_masterFDs);
                 this->disconnect(i);
+                //TODO: meter aqui o message Handler com o .says()
             }
             else
             {
@@ -153,6 +155,23 @@ void Server::dataReceived(fd_set &readFDs)
 int Server::isNewUser(fd_set& readFDs)
 {
     return (FD_ISSET(listenSocket, &readFDs));
+}
+
+
+
+std::string ServerMessage::getPrefix() const
+{
+    return _prefix;
+}
+
+std::string ServerMessage::getCommand() const
+{
+    return _command;
+}
+
+std::vector<std::string> ServerMessage::getParams() const
+{
+    return _params;
 }
 
 Server::Server()
@@ -183,3 +202,74 @@ void    Server::disconnect(const int sock)
     }
 
 }
+ServerEnvironment Server::getEnvironment() const
+{
+    return _environment;
+}
+
+std::vector<int> Server::getClientFDs() const
+{
+    return _clientFDs;
+}
+
+std::list<User> Server::getUsers() const
+{
+    return _users;
+}
+
+std::vector<Channel> Server::getChannels() const
+{
+    return _channels;
+}
+
+sockaddr_in Server::getAddress() const
+{
+    return _address;
+}
+
+socklen_t Server::getAddrSize() const
+{
+    return _addr_size;
+}
+
+int Server::getSocket() const
+{
+    return _socket;
+}
+
+void Server::setEnvironment(ServerEnvironment environment)
+{
+    _environment = environment;
+}
+
+void Server::setClientFDs(std::vector<int> clientFDs)
+{
+    _clientFDs = clientFDs;
+}
+
+void Server::setUsers(std::list<User> users)
+{
+    _users = users;
+}
+
+void Server::setChannels(std::vector<Channel> channels)
+{
+    _channels = channels;
+}
+
+void Server::setAddress(sockaddr_in address)
+{
+    _address = address;
+}
+
+void Server::setAddrSize(socklen_t addrSize)
+{
+    _addr_size = addrSize;
+}
+
+void Server::setSocket(int socket)
+{
+    _socket = socket;
+}
+
+

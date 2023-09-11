@@ -4,6 +4,16 @@ https://www.alien.net.au/irc/irc2numerics.html
 https://modern.ircdocs.horse/
 
 
+
+
+
+Verificar se é preciso fazer Capability Negotiation.
+Ver que funções(comandos) são necessárias ou queremos fazer para o servidor.
+TODO: Name parsing and collision if already existent
+TODO: Channel name parsing and collision if already existent
+
+
+
 Creating an IRC server is a complex project, and the structure of your code will 
     depend on your specific requirements and design goals. However, there are several 
     components and features you'll typically need in an IRC server. Here are some additional 

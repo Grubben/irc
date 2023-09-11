@@ -5,7 +5,12 @@
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
+<<<<<<< HEAD
 #include "InputIRCParser.hpp"
+=======
+#include "stringFuncs.hpp"
+#include "ServerMessage.hpp"
+>>>>>>> readFromIRC
 
 #include <fcntl.h>
 #include <list>
@@ -14,7 +19,7 @@
 #include <cstring>
 #include <errno.h>
 #include <unistd.h>
-
+#include <vector>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -30,6 +35,9 @@
 #include <errno.h>
 
 #define BACKLOG 10
+
+#define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
+#define SERVER_NAME "ONossoIRC" // por mudar
 
 /*
     To deal with struct sockaddr, programmers created
@@ -54,36 +62,47 @@ typedef struct sockaddr_in sockaddr_in;
 class Server
 {
 private:
-    ServerEnvironment _environment;
+    ServerEnvironment       _environment;
+    std::list<User*>         _users;
+    std::vector<Channel>    _channels;
 
-    fd_set  _masterFDs;
-    int _fdMax;
-    std::vector<User*> _users;
+    std::vector<int>        _clientFDs;
 
-    sockaddr_in _address;
-    socklen_t addr_size;
-    int listenSocket;
+    sockaddr_in             _address;
+    socklen_t               _addr_size;
+    int                     listenSocket;
 
     Server();
-    int isNewUser(fd_set& readFDs);
-    bool validPassword(fd_set& readFDs);
-    void acceptConnection(int& fdMax);
-    void dataReceived(fd_set& readFDs);
-
+    int                     isNewUser(fd_set& readFDs);
+    void                    acceptConnection(fd_set& masterFDs, int& fdMax);
+    void                    dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    void                    messageHandler(std::string message);
+    void                    broadcast(const std::string msg);
 
 public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
 
-    void    run();
-
-    void    disconnect(int sock);
-
-    void    broadcast(const std::string msg);
+    void                    run();
     
+    ServerEnvironment       getEnvironment() const;
+    std::vector<int>        getClientFDs() const;
+    std::list<User>         getUsers() const;
+    std::vector<Channel>    getChannels() const;
+    sockaddr_in             getAddress() const;
+    socklen_t               getAddrSize() const;
+    int                     getSocket() const;
 
-    // std::list<int>  clientFDs;
-    // static std::vector<Channel> _channels;
+    void                    setEnvironment(ServerEnvironment environment);
+    void                    setClientFDs(std::vector<int> clientFDs);
+    void                    setUsers(std::list<User> users);
+    void                    setChannels(std::vector<Channel> channels);
+    void                    setAddress(sockaddr_in address);
+    void                    setAddrSize(socklen_t addrSize);
+    void                    setSocket(int socket);
+
 };
+
+void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);
 
 #endif
