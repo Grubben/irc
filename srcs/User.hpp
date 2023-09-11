@@ -10,9 +10,11 @@ class User
 {
 private:
 	Server *_server;
-	int		sock;
+	int		_socket;
 	User();
 
+	void 	messageHandler(std::string message, Server *server);
+	
 public:
 	User(Server* server, int userSocket);
 	User(const User& copy);
@@ -26,10 +28,13 @@ public:
 
     void    quitServer();
 
-	void 	messageHandler(std::string message, Server *server);
 
-    void    says(std::string message, Server *server);
 
 	std::string	name;
 	std::string	nick;
+
+	/* API */
+    void    says(std::string message, Server *server);
+	
+
 };

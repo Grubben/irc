@@ -110,6 +110,10 @@ int channelOperations(std::list<ServerMessage> messageList, Server *server)
     if (messageList.front().getCommand() == "JOIN")
     {
         std::cout << "join command" << std::endl;
+
+        // server->channelJoin(messageList.front().getParams(2), this);
+
+        // sendNumericResponse(this->_socket)
         return (1);
     }
     else if (messageList.front().getCommand() == "PART")
