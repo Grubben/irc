@@ -6,8 +6,8 @@ Server::Server(ServerEnvironment serverEnvironment)
 
     /* Socket initialization with protocol TCP */
     // listenSocket = socket(AF_INET, SOCK_STREAM, getprotobyname("TCP")->p_proto);
-    listenSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (listenSocket == -1)
+    _listenSocket = socket(PF_INET, SOCK_STREAM, 0);
+    if (_listenSocket == -1)
         throw SocketInitializationError();
 
     /* Set socket options to IPv4, port number and IP address. */
@@ -16,7 +16,7 @@ Server::Server(ServerEnvironment serverEnvironment)
     _address.sin_addr.s_addr = INADDR_ANY; // inet_addr("some ip in here "); or assign INADDR_ANY to the s_addr field if you want to bind to your local IP address
     memset(_address.sin_zero, '\0', sizeof(_address.sin_zero));
 
-    addr_size = sizeof(_address); // Was Missing!!
+    _addr_size = sizeof(_address); // Was Missing!!
 
     /*
         When a network socket is closed, it normally enters the TIME_WAIT
@@ -30,21 +30,21 @@ Server::Server(ServerEnvironment serverEnvironment)
             state).
     */
     int yes = 1;
-    if (setsockopt(listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
+    if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
         throw SocketOptionsError();
 
     /* Bind socket to address */
-    if (bind(listenSocket, (sockaddr *)&_address, addr_size) == -1)
+    if (bind(_listenSocket, (sockaddr *)&_address, _addr_size) == -1)
         throw SocketBindingError();
 
     /* Listen on socket, Backlog is the number of connections allowed on the incoming queue */
-    if (listen(listenSocket, BACKLOG) == -1)
+    if (listen(_listenSocket, BACKLOG) == -1)
         throw SocketListeningError();
 
     std::cout << "Server listening on port " << _environment.getPortNumber() << std::endl;
 
     /* Set socket to non-blocking */
-    fcntl(listenSocket, F_SETFL, O_NONBLOCK);
+    fcntl(_listenSocket, F_SETFL, O_NONBLOCK);
 }
 
 
@@ -54,8 +54,8 @@ void Server::run()
     std::string msg;
 
     FD_ZERO(&_masterFDs);
-    FD_SET(listenSocket, &_masterFDs);
-    _fdMax = listenSocket;
+    FD_SET(_listenSocket, &_masterFDs);
+    _fdMax = _listenSocket;
     int n;
 
     while (true)
@@ -77,15 +77,12 @@ void Server::run()
         std::cout << n << " polls triggered" << std::endl;
 
 
-        if (FD_ISSET(listenSocket, &readFDs))
+        if (FD_ISSET(_listenSocket, &readFDs))
         {
             acceptConnection(_fdMax);
             // if (n == 1)
             //     continue;
         }
-        dataReceived(masterFDs, readFDs);
-
-
         dataReceived(readFDs);
     }
 }
@@ -93,7 +90,7 @@ void Server::run()
 void Server::acceptConnection(int& fdMax)
 {
     std::cout << "New connection" << std::endl;
-    int newUserSocket = accept(listenSocket, (sockaddr *)&_address, &addr_size);
+    int newUserSocket = accept(_listenSocket, (sockaddr *)&_address, &_addr_size);
 
     if (newUserSocket == -1)
     {
@@ -132,7 +129,7 @@ std::string receiveMsg(int rcvFD)
 
 void Server::dataReceived(fd_set &readFDs)
 {
-    for (std::size_t i = listenSocket + 1; i <= _fdMax; i++)
+    for (std::size_t i = _listenSocket + 1; i <= _fdMax; i++)
     {
         if (FD_ISSET(i, &readFDs))
         {
@@ -142,10 +139,11 @@ void Server::dataReceived(fd_set &readFDs)
                 std::cout << "Client has left the network. fd: " << i << std::endl;
                 FD_CLR(i, &_masterFDs);
                 this->disconnect(i);
-                //TODO: meter aqui o message Handler com o .says()
             }
             else
             {
+                //TODO: meter aqui o message Handler com o .says()
+                getUserBySocket(i).says(msg, this);
                 std::cout << msg;
             }
         }
@@ -154,7 +152,7 @@ void Server::dataReceived(fd_set &readFDs)
 
 int Server::isNewUser(fd_set& readFDs)
 {
-    return (FD_ISSET(listenSocket, &readFDs));
+    return (FD_ISSET(_listenSocket, &readFDs));
 }
 
 
@@ -180,10 +178,22 @@ Server::Server()
 
 Server::~Server()
 {
-    close(listenSocket);
+    close(_listenSocket);
     
 }
 
+
+User&	Server::getUserBySocket(int socket)
+{
+    for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
+    {
+        if ((*it)->getSocket() == socket)
+        {
+            return *(*it);
+        }
+    }
+    throw SocketUnableToFindUser();
+}
 
 void    Server::disconnect(const int sock)
 {
@@ -191,7 +201,7 @@ void    Server::disconnect(const int sock)
     std::cout << "users size: " << _users.size() << std::endl;
 
     // std::vector<User*>::iterator it = users.begin();
-    for (std::vector<User*>::iterator it = _users.begin(); it != _users.end(); it++)
+    for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         if ((*it)->getSocket() == sock)
         {
@@ -207,20 +217,15 @@ ServerEnvironment Server::getEnvironment() const
     return _environment;
 }
 
-std::vector<int> Server::getClientFDs() const
-{
-    return _clientFDs;
-}
-
-std::list<User> Server::getUsers() const
+std::list<User*> Server::getUsers() const
 {
     return _users;
 }
 
-std::vector<Channel> Server::getChannels() const
-{
-    return _channels;
-}
+// std::vector<Channel> Server::getChannels() const
+// {
+//     return _channels;
+// }
 
 sockaddr_in Server::getAddress() const
 {
@@ -234,7 +239,7 @@ socklen_t Server::getAddrSize() const
 
 int Server::getSocket() const
 {
-    return _socket;
+    return _listenSocket;
 }
 
 void Server::setEnvironment(ServerEnvironment environment)
@@ -242,20 +247,15 @@ void Server::setEnvironment(ServerEnvironment environment)
     _environment = environment;
 }
 
-void Server::setClientFDs(std::vector<int> clientFDs)
-{
-    _clientFDs = clientFDs;
-}
+// void Server::setUsers(std::list<User> users)
+// {
+//     _users = users;
+// }
 
-void Server::setUsers(std::list<User> users)
-{
-    _users = users;
-}
-
-void Server::setChannels(std::vector<Channel> channels)
-{
-    _channels = channels;
-}
+// void Server::setChannels(std::vector<Channel> channels)
+// {
+//     _channels = channels;
+// }
 
 void Server::setAddress(sockaddr_in address)
 {
@@ -269,7 +269,7 @@ void Server::setAddrSize(socklen_t addrSize)
 
 void Server::setSocket(int socket)
 {
-    _socket = socket;
+    _listenSocket = socket;
 }
 
 

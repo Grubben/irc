@@ -1,4 +1,4 @@
-#include "InputIRCParser.hpp"
+#include "Server.hpp"
 
 int capabilityNegotiation();
 int connectionRegistration(std::list<ServerMessage> messageList, Server* server);
@@ -7,7 +7,7 @@ int userBasedQueries(std::list<ServerMessage> messageList, Server *server);
 int sendingMessages(std::list<ServerMessage> messageList, Server *server);
 int channelOperations(std::list<ServerMessage> messageList, Server *server);
 
-void Server::messageHandler(std::string message)
+void User::messageHandler(std::string message, Server *server)
 {
     std::vector<std::string> messageBuffer = split(message, "\r\n");
     std::list<ServerMessage> messageList;
@@ -27,11 +27,11 @@ void Server::messageHandler(std::string message)
         // This evaluates all the 4.5 commands of RFC 1459
         // This evaluates all the 4.6 commands of RFC 1459
         if (!(capabilityNegotiation() || \
-            connectionRegistration(messageList, this) || \
-            channelOperations(messageList, this) || \
-            sendingMessages(messageList, this) || \
-            userBasedQueries(messageList, this) || \
-            miscellaneousMessages(messageList, this)))
+            connectionRegistration(messageList, server) || \
+            channelOperations(messageList, server) || \
+            sendingMessages(messageList, server) || \
+            userBasedQueries(messageList, server) || \
+            miscellaneousMessages(messageList, server)))
         {
             std::cout << "command not found" << std::endl;
         }
@@ -50,7 +50,7 @@ void passwordVerification(std::string password, Server* server)
 {
     if (password == server->getEnvironment().getPassword())
     {
-        sendNumericResponse(server->getClientFDs().back(), 376, "Password match! Welcome to the server!");
+        // sendNumericResponse(server->getClientFDs().back(), 376, "Password match! Welcome to the server!");
         // make user load here steps:
         //      1. create user using constructor
         //      2. add pass to user

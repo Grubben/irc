@@ -55,3 +55,8 @@ const char* ParserNoPasswordError::what() const throw()
 {
     return "Password must be set";
 }
+
+const char* SocketUnableToFindUser::what() const throw()
+{
+    return "No User with Specified Socket";
+}

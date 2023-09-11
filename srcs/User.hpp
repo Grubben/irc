@@ -9,7 +9,7 @@ class Server;
 class User
 {
 private:
-	Server*	_server;
+	Server *_server;
 	int		sock;
 	User();
 
@@ -26,7 +26,9 @@ public:
 
     void    quitServer();
 
-    void    says(std::string message);
+	void 	messageHandler(std::string message, Server *server);
+
+    void    says(std::string message, Server *server);
 
 	std::string	name;
 	std::string	nick;

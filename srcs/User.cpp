@@ -64,16 +64,9 @@ bool    checkChannelExists(std::string chaname)
     return true;
 }
 
-void User::says(std::string message)
+void User::says(std::string message, Server *server)
 {
-    std::cout << this->getSocket() << std::endl;
-    std::vector<std::string>    div = split(message);
-
-    if (div[0] == "JOIN")
-    {
-        std::cout << "Joining " << div[1] << std::endl;
-
-    }
+    messageHandler(message, server);
 }
 
 // void    Server::broadcast(const std::string msg)

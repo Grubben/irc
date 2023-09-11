@@ -5,12 +5,8 @@
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
-<<<<<<< HEAD
-#include "InputIRCParser.hpp"
-=======
 #include "stringFuncs.hpp"
 #include "ServerMessage.hpp"
->>>>>>> readFromIRC
 
 #include <fcntl.h>
 #include <list>
@@ -63,21 +59,24 @@ class Server
 {
 private:
     ServerEnvironment       _environment;
-    std::list<User*>         _users;
-    std::vector<Channel>    _channels;
+    std::list<User*>        _users;
+    // std::vector<Channel>    _channels;
 
-    std::vector<int>        _clientFDs;
+    fd_set                  _masterFDs;
+
+    int                     _fdMax;
 
     sockaddr_in             _address;
     socklen_t               _addr_size;
-    int                     listenSocket;
+    int                     _listenSocket;
 
     Server();
     int                     isNewUser(fd_set& readFDs);
-    void                    acceptConnection(fd_set& masterFDs, int& fdMax);
-    void                    dataReceived(fd_set& masterFDs, fd_set& readFDs);
-    void                    messageHandler(std::string message);
+    void                    acceptConnection(int& fdMax);
+    void                    dataReceived(fd_set& readFDs);
     void                    broadcast(const std::string msg);
+
+    void                    disconnect(const int sock);
 
 public:
     Server(ServerEnvironment serverEnvironment);
@@ -87,16 +86,19 @@ public:
     
     ServerEnvironment       getEnvironment() const;
     std::vector<int>        getClientFDs() const;
-    std::list<User>         getUsers() const;
-    std::vector<Channel>    getChannels() const;
+    std::list<User*>         getUsers() const;
+    // std::vector<Channel>    getChannels() const;
     sockaddr_in             getAddress() const;
     socklen_t               getAddrSize() const;
     int                     getSocket() const;
 
+    User&	                getUserBySocket(int socket);
+
+
     void                    setEnvironment(ServerEnvironment environment);
     void                    setClientFDs(std::vector<int> clientFDs);
-    void                    setUsers(std::list<User> users);
-    void                    setChannels(std::vector<Channel> channels);
+    // void                    setUsers(std::list<User> users);
+    // void                    setChannels(std::vector<Channel> channels);
     void                    setAddress(sockaddr_in address);
     void                    setAddrSize(socklen_t addrSize);
     void                    setSocket(int socket);
