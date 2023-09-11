@@ -56,33 +56,45 @@ typedef struct sockaddr_in sockaddr_in;
 class Server
 {
 private:
-    ServerEnvironment _environment;
-    std::list<User> _users;
-    std::vector<Channel> _channels;
+    ServerEnvironment       _environment;
+    std::list<User>         _users;
+    std::vector<Channel>    _channels;
 
-    std::vector<int> _clientFDs;
+    std::vector<int>        _clientFDs;
 
-    sockaddr_in _address;
-    socklen_t addr_size;
-    int _socket;
+    sockaddr_in             _address;
+    socklen_t               _addr_size;
+    int                     _socket;
 
     Server();
-    int isNewUser(fd_set& readFDs);
-    void acceptConnection(fd_set& masterFDs, int& fdMax);
-    void dataReceived(fd_set& masterFDs, fd_set& readFDs);
-    void messageHandler(std::string message);
-
+    int                     isNewUser(fd_set& readFDs);
+    void                    acceptConnection(fd_set& masterFDs, int& fdMax);
+    void                    dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    void                    messageHandler(std::string message);
+    void                    broadcast(const std::string msg);
 
 public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
 
-    void    passwordVerification(std::string password);
-    void    run();
-    void    broadcast(const std::string msg);
+    void                    run();
     
-    ServerEnvironment getEnvironment() const;
-    std::vector<int> getClientFDs() const;
+    ServerEnvironment       getEnvironment() const;
+    std::vector<int>        getClientFDs() const;
+    std::list<User>         getUsers() const;
+    std::vector<Channel>    getChannels() const;
+    sockaddr_in             getAddress() const;
+    socklen_t               getAddrSize() const;
+    int                     getSocket() const;
+
+    void                    setEnvironment(ServerEnvironment environment);
+    void                    setClientFDs(std::vector<int> clientFDs);
+    void                    setUsers(std::list<User> users);
+    void                    setChannels(std::vector<Channel> channels);
+    void                    setAddress(sockaddr_in address);
+    void                    setAddrSize(socklen_t addrSize);
+    void                    setSocket(int socket);
+
 };
 
 void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);

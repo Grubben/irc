@@ -115,7 +115,7 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
 void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
 {
     std::cout << "New connection" << std::endl;
-    int newUserSocket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&addr_size);
+    int newUserSocket = accept(_socket, (sockaddr *)&_address, (socklen_t*)&_addr_size);
     if (newUserSocket == -1)
         throw SocketAcceptingError();
     fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
@@ -170,3 +170,65 @@ std::vector<int> Server::getClientFDs() const
 {
     return _clientFDs;
 }
+
+std::list<User> Server::getUsers() const
+{
+    return _users;
+}
+
+std::vector<Channel> Server::getChannels() const
+{
+    return _channels;
+}
+
+sockaddr_in Server::getAddress() const
+{
+    return _address;
+}
+
+socklen_t Server::getAddrSize() const
+{
+    return _addr_size;
+}
+
+int Server::getSocket() const
+{
+    return _socket;
+}
+
+void Server::setEnvironment(ServerEnvironment environment)
+{
+    _environment = environment;
+}
+
+void Server::setClientFDs(std::vector<int> clientFDs)
+{
+    _clientFDs = clientFDs;
+}
+
+void Server::setUsers(std::list<User> users)
+{
+    _users = users;
+}
+
+void Server::setChannels(std::vector<Channel> channels)
+{
+    _channels = channels;
+}
+
+void Server::setAddress(sockaddr_in address)
+{
+    _address = address;
+}
+
+void Server::setAddrSize(socklen_t addrSize)
+{
+    _addr_size = addrSize;
+}
+
+void Server::setSocket(int socket)
+{
+    _socket = socket;
+}
+
+

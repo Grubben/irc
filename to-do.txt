@@ -9,6 +9,9 @@ https://modern.ircdocs.horse/
 
 Verificar se é preciso fazer Capability Negotiation.
 Ver que funções(comandos) são necessárias ou queremos fazer para o servidor.
+TODO: Name parsing and collision if already existent
+TODO: Channel name parsing and collision if already existent
+
 
 
 Creating an IRC server is a complex project, and the structure of your code will 

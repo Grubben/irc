@@ -34,7 +34,6 @@ std::string trim(std::string str, std::string undesired)
     return str;
 }
 
-
 std::vector<std::string> split(const std::string input, const std::string delimiter)
 {
     std::vector<std::string> result;
