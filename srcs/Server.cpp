@@ -50,19 +50,18 @@ Server::Server(ServerEnvironment serverEnvironment)
 
 void Server::run()
 {
-    fd_set  masterFDs;
     fd_set  readFDs;
     std::string msg;
 
-    FD_ZERO(&masterFDs);
-    FD_SET(listenSocket, &masterFDs);
+    FD_ZERO(&_masterFDs);
+    FD_SET(listenSocket, &_masterFDs);
     _fdMax = listenSocket;
     int n;
 
     while (true)
     {
         struct timeval tv = {200, 200};
-        readFDs = masterFDs;
+        readFDs = _masterFDs;
 
         n = select(_fdMax + 1, &readFDs, NULL, NULL, &tv);
         if (n == -1)
@@ -80,17 +79,17 @@ void Server::run()
 
         if (FD_ISSET(listenSocket, &readFDs))
         {
-            acceptConnection(masterFDs, _fdMax);
+            acceptConnection(_fdMax);
             if (n == 1)
                 continue;
         }
 
 
-        dataReceived(masterFDs, readFDs);
+        dataReceived(readFDs);
     }
 }
 
-void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
+void Server::acceptConnection(int& fdMax)
 {
     std::cout << "New connection" << std::endl;
     int newUserSocket = accept(listenSocket, (sockaddr *)&_address, &addr_size);
@@ -103,12 +102,12 @@ void Server::acceptConnection(fd_set& masterFDs, int& fdMax)
     fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
     std::cout << "Creating new user with fd: " << newUserSocket << std::endl;
 
-    FD_SET(newUserSocket, &masterFDs);
+    FD_SET(newUserSocket, &_masterFDs);
 
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
 
-    users.push_back( new User(this, newUserSocket) );
+    _users.push_back( new User(this, newUserSocket) );
 }
 
 std::string receiveMsg(int rcvFD)
@@ -130,7 +129,7 @@ std::string receiveMsg(int rcvFD)
 
 }
 
-void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
+void Server::dataReceived(fd_set &readFDs)
 {
     for (std::size_t i = listenSocket + 1; i <= _fdMax; i++)
     {
@@ -140,7 +139,7 @@ void Server::dataReceived(fd_set &masterFDs, fd_set &readFDs)
             if (msg == "")
             {
                 std::cout << "Client has left the network. fd: " << i << std::endl;
-                FD_CLR(i, &masterFDs);
+                FD_CLR(i, &_masterFDs);
                 this->disconnect(i);
             }
             else
@@ -170,15 +169,15 @@ Server::~Server()
 void    Server::disconnect(const int sock)
 {
     std::cout << "Server is removing user with fd: " << sock << std::endl;
-    std::cout << "users size: " << users.size() << std::endl;
+    std::cout << "users size: " << _users.size() << std::endl;
 
     // std::vector<User*>::iterator it = users.begin();
-    for (std::vector<User*>::iterator it = users.begin(); it != users.end(); it++)
+    for (std::vector<User*>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         if ((*it)->getSocket() == sock)
         {
             delete *it;
-            users.erase(it);
+            _users.erase(it);
             return;
         }
     }

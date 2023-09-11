@@ -56,7 +56,9 @@ class Server
 private:
     ServerEnvironment _environment;
 
-    // std::vector<int> clientFDs;
+    fd_set  _masterFDs;
+    int _fdMax;
+    std::vector<User*> _users;
 
     sockaddr_in _address;
     socklen_t addr_size;
@@ -65,8 +67,8 @@ private:
     Server();
     int isNewUser(fd_set& readFDs);
     bool validPassword(fd_set& readFDs);
-    void acceptConnection(fd_set& masterFDs, int& fdMax);
-    void dataReceived(fd_set& masterFDs, fd_set& readFDs);
+    void acceptConnection(int& fdMax);
+    void dataReceived(fd_set& readFDs);
 
 
 public:
@@ -81,9 +83,7 @@ public:
     
 
     // std::list<int>  clientFDs;
-    std::vector<User*> users;
     // static std::vector<Channel> _channels;
-    int _fdMax;
 };
 
 #endif
