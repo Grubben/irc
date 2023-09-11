@@ -1,25 +1,30 @@
-#ifndef CHANNEL_HPP
-#define CHANNEL_HPP
+#pragma once
+#include <iostream>
+#include <list>
 
-#include <vector>
-
-#include "Server.hpp"
-#include "User.hpp"
+class Server;
+class User;
 
 class Channel
 {
 private:
-    std::string _topic;
-    Channel();
-
+	Server*				_server;
+	std::list<User*>	_chanusers;
 public:
-    Channel(std::string name);
-    ~Channel();
+	Channel(std::string name);
+	Channel(const Channel& copy);
+	~Channel(void);
 
-    const std::string name;
-    // std::vector<User*> users;
+	Channel&	operator= (const Channel& copy);
+
+
+	std::string			_name;
+
+	/*	API	*/
+	void	userAdd(User& user);
+	void	userRemove(User& user);
+
+	void	usersDrop();
 };
 
-
-
-#endif
+Channel& getChannel(std::list<Channel*>& channels, std::string chaname);

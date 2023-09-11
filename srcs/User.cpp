@@ -1,9 +1,10 @@
 #include "User.hpp"
+#include "Server.hpp"
 
-User::User(void)
-{
-	std::cout << "User constructor called" << std::endl;
-}
+// User::User(void)
+// {
+// 	std::cout << "User constructor called" << std::endl;
+// }
 
 User::User(Server* server, int userSocket)
 	: _server(server)
@@ -80,3 +81,21 @@ void User::says(std::string message, Server *server)
 //     }
 // }
 
+void	User::channelJoin(Server* server, Channel channel)
+{
+	server->addUserToChannel(*this, channel);
+}
+
+void	User::channelLeave(Server* server, Channel channel)
+{
+	server->rmUserFromChannel(*this, channel);
+}
+
+void	User::channelsDrop()
+{
+	for (std::list<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
+	{
+		_server->rmUserFromChannel(*this, (*it)->_name);
+	}
+	_channels.clear();
+}

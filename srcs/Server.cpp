@@ -106,6 +106,8 @@ void Server::acceptConnection(int& fdMax)
         fdMax = newUserSocket;
 
     _users.push_back( new User(this, newUserSocket) );
+
+    _users.back()->channelJoin(this, "#hello");
 }
 
 std::string receiveMsg(int rcvFD)
@@ -143,7 +145,7 @@ void Server::dataReceived(fd_set &readFDs)
             else
             {
                 //TODO: meter aqui o message Handler com o .says()
-                (*getUserBySocket(i))->says(msg, this);
+                getUserBySocket(i).says(msg, this);
                 std::cout << msg;
             }
         }
@@ -179,16 +181,21 @@ Server::Server()
 Server::~Server()
 {
     close(_listenSocket);
+
+    //TODO: correct clean-up in case of weird stuff
+    _users.clear();  //Warning: Does not delete if there are any left
+    _channels.clear(); //Warning: Does not delete if there are any left
+    //_
     
 }
 
-std::list<User*>::iterator	Server::getUserBySocket(int socket)
+User&	Server::getUserBySocket(int socket)
 {
     for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         if ((*it)->getSocket() == socket)
         {
-            return it;
+            return *(*it);
         }
     }
     throw SocketUnableToFindUser();
@@ -199,11 +206,13 @@ void    Server::disconnect(const int sock)
 {
     std::cout << "Server is removing user with fd: " << sock << std::endl;
 
-    std::list<User*>::iterator   deleteme = getUserBySocket(sock);
+    User*   userdelete = &getUserBySocket(sock);
 
-    delete *deleteme;
+    userdelete->channelsDrop();
 
-    _users.erase(deleteme);
+    _users.remove(userdelete);
+
+    delete userdelete;
 
     std::cout << "users size: " << _users.size() << std::endl;
 }
@@ -268,3 +277,41 @@ void Server::setSocket(int socket)
 }
 
 
+void    Server::addUserToChannel(User& user, Channel channel)
+{
+    Channel*    chan;
+    try
+    {
+        chan = &getChannel(_channels, chaname);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+
+        chan = new Channel(chaname);
+        _channels.push_back( chan );
+    }
+
+    chan->userAdd(user);    
+}
+
+void    Server::rmUserFromChannel(User& user, Channel channel)
+{
+    Channel*    chan;
+    try
+    {
+        chan = &getChannel(_channels, chaname);
+        chan->userRemove(user);
+    }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+}
+
+void    Server::destroyChannel(Channel& channel)
+{
+    channel.usersDrop();
+    _channels.remove(&channel);
+    delete &channel;
+}

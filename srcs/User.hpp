@@ -7,15 +7,19 @@
 #include "stringFuncs.hpp"
 
 class Server;
+class Channel;
 
 class User
 {
 private:
 	Server *_server;
 	int		_socket;
-	User();
 
-	void 	messageHandler(std::string message, Server *server);
+	std::list<Channel*>	_channels;
+
+	// User();
+
+	void messageHandler(std::string message, Server *server);
 	int capabilityNegotiation();
 	int connectionRegistration(std::list<ServerMessage> messageList, Server* server);
 	int miscellaneousMessages(std::list<ServerMessage> messageList, Server *server);
@@ -43,6 +47,9 @@ public:
 
 	/* API */
     void    says(std::string message, Server *server);
-	
+	void	channelJoin(Server* server, Channel channel);
+	void	channelLeave(Server* server, Channel channel);
+
+	void	channelsDrop();
 
 };

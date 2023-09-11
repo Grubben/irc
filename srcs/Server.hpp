@@ -60,7 +60,7 @@ class Server
 private:
     ServerEnvironment       _environment;
     std::list<User*>        _users;
-    // std::vector<Channel>    _channels;
+    std::list<Channel*>    _channels;
 
     fd_set                  _masterFDs;
 
@@ -92,9 +92,7 @@ public:
     socklen_t               getAddrSize() const;
     int                     getSocket() const;
 
-    // User&	                getUserBySocket(int socket);
-    std::list<User*>::iterator	getUserBySocket(int socket);
-
+    User&	                getUserBySocket(int socket);
 
     void                    setEnvironment(ServerEnvironment environment);
     void                    setClientFDs(std::vector<int> clientFDs);
@@ -103,6 +101,12 @@ public:
     void                    setAddress(sockaddr_in address);
     void                    setAddrSize(socklen_t addrSize);
     void                    setSocket(int socket);
+
+    /*  API */
+    void                    addUserToChannel(User& user, std::string chaname);
+    void                    rmUserFromChannel(User& user, std::string chaname);
+
+    void                    destroyChannel(Channel& channel);
 
 };
 

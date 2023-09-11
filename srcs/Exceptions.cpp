@@ -60,3 +60,8 @@ const char* SocketUnableToFindUser::what() const throw()
 {
     return "No User with Specified Socket";
 }
+
+const char* ChannelUnableToFind::what() const throw()
+{
+    return "Couldn't find channel";
+}

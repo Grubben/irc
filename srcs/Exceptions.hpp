@@ -75,4 +75,10 @@ class SocketUnableToFindUser : public std::exception
         virtual const char* what() const throw();
 };
 
+class ChannelUnableToFind : public std::exception
+{
+    public:
+        virtual const char* what() const throw();
+};
+
 #endif
