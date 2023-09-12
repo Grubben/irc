@@ -132,7 +132,7 @@ std::string receiveMsg(int rcvFD)
 
 void Server::dataReceived(fd_set &readFDs)
 {
-    for (std::size_t i = _listenSocket + 1; i <= _fdMax; i++)
+    for (int i = _listenSocket + 1; i <= _fdMax; i++)
     {
         if (FD_ISSET(i, &readFDs))
         {
@@ -141,7 +141,7 @@ void Server::dataReceived(fd_set &readFDs)
             {
                 std::cout << "Client has left the network. fd: " << i << std::endl;
                 FD_CLR(i, &_masterFDs);
-                this->userDisconnect(i);
+                this->userQuit(i);
             }
             else
             {
@@ -159,7 +159,7 @@ int Server::isNewUser(fd_set& readFDs)
 }
 
 
-void    Server::userDisconnect(const int sock)
+void    Server::userQuit(const int sock)
 {
     std::cout << "Server is removing user with fd: " << sock << std::endl;
 
@@ -191,7 +191,7 @@ void    Server::userAddToChannel(User& user, std::string chaname)
         chan = channelCreate(chaname);
     }
 
-    user.channelSubscribe(this, chan);
+    user.channelSubscribe(chan);
     chan->userAdd(user);
 }
 

@@ -13,7 +13,7 @@ class User
 {
 private:
 	Server *_server;
-	int		_socket;
+	const int		_socket;
 
 	std::list<Channel*>	_channels;
 
@@ -36,7 +36,7 @@ public:
 
     bool    operator==(const int sock);
 
-	int getSocket() const;
+	const int& getSocket() const;
 
 
 	std::string	name;
@@ -46,9 +46,9 @@ public:
     void    says(std::string message, Server *server);
 	
 	void	channelJoin(Server* server, std::string chaname);
-	void	channelSubscribe(Server* server, Channel* channel); // Only called by server
+	void	channelSubscribe(Channel* channel); // Only called by server
 
-	void	channelLeave(Server* server, Channel& channel);
+	void	channelPart(Server* server, Channel& channel);
 
 	void	channelsDrop();
 

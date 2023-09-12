@@ -100,7 +100,7 @@ public:
 
     /*  API */
     void                    userCreate(int socket);
-    void                    userDisconnect(const int sock);
+    void                    userQuit(const int sock);
 
     void                    userAddToChannel(User& user, std::string chaname);
     void                    userRmFromChannel(User& user, Channel& channel);

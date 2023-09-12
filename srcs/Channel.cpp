@@ -49,7 +49,7 @@ void    Channel::usersDrop()
     while (_chanusers.size() > 0)
     {
         User*   useri = _chanusers.back();
-        useri->channelLeave(_server, *this);
+        useri->channelPart(_server, *this);
         _chanusers.pop_back();
     }
 }

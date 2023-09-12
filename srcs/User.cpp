@@ -14,6 +14,7 @@ User::User(Server* server, int userSocket)
 }
 
 User::User(const User& copy)
+	: _socket(copy._socket)
 {
 	std::cout << "User copy constructor called" << std::endl;
 	*this = copy;
@@ -34,7 +35,7 @@ User&	User::operator= (const User& copy)
 	if (this != &copy)
 	{
 		this->_server = copy._server;
-		this->_socket = copy._socket;
+		// this->_socket = copy._socket;
 	}
 	return (*this);
 }
@@ -45,7 +46,7 @@ bool    User::operator==(const int sock)
 }
 
 
-int User::getSocket() const
+const int& User::getSocket() const
 {
     return _socket;
 }
@@ -72,12 +73,12 @@ void	User::channelJoin(Server* server, std::string chaname)
 	server->userAddToChannel(*this, chaname);
 }
 
-void	User::channelSubscribe(Server* server, Channel* channel)
+void	User::channelSubscribe(Channel* channel)
 {
 	_channels.push_back(channel);
 }
 
-void	User::channelLeave(Server* server, Channel& channel)
+void	User::channelPart(Server* server, Channel& channel)
 {
 	server->userRmFromChannel(*this, channel);
 }
