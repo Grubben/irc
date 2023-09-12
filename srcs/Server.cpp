@@ -106,10 +106,9 @@ void Server::acceptConnection(int& fdMax)
         fdMax = newUserSocket;
 
 
-    User*   newuser = new User(this, newUserSocket);
-    _users.push_back( newuser );
+    userCreate(newUserSocket);
 
-    newuser->channelJoin(this, "#hello");
+    userAddToChannel(getUserBySocket(newUserSocket), "#hello");
 }
 
 std::string receiveMsg(int rcvFD)
@@ -176,10 +175,6 @@ std::vector<std::string> ServerMessage::getParams() const
     return _params;
 }
 
-Server::Server()
-{
-}
-
 Server::~Server()
 {
     close(_listenSocket);
@@ -197,7 +192,7 @@ User&	Server::getUserBySocket(int socket)
     {
         if ((*it)->getSocket() == socket)
         {
-            return *(*it);
+            return (**it);
         }
     }
     throw SocketUnableToFindUser();
@@ -216,6 +211,7 @@ void    Server::disconnect(const int sock)
 
     std::cout << "users size: " << _users.size() << std::endl;
 }
+
 ServerEnvironment Server::getEnvironment() const
 {
     return _environment;
@@ -251,16 +247,6 @@ void Server::setEnvironment(ServerEnvironment environment)
     _environment = environment;
 }
 
-// void Server::setUsers(std::list<User> users)
-// {
-//     _users = users;
-// }
-
-// void Server::setChannels(std::vector<Channel> channels)
-// {
-//     _channels = channels;
-// }
-
 void Server::setAddress(sockaddr_in address)
 {
     _address = address;
@@ -276,8 +262,13 @@ void Server::setSocket(int socket)
     _listenSocket = socket;
 }
 
+void    Server::userCreate(int socket)
+{
+    _users.push_back( new User(this, socket) );
+}
 
-Channel*    Server::addUserToChannel(User& user, std::string chaname)
+
+Channel*    Server::userAddToChannel(User& user, std::string chaname)
 {
     Channel*    chan;
     try
@@ -287,25 +278,22 @@ Channel*    Server::addUserToChannel(User& user, std::string chaname)
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
-
-        chan = new Channel(chaname);
-        _channels.push_back( chan );
+        channelCreate(chaname);
     }
 
     chan->userAdd(user);
     return chan;
 }
 
-void    Server::addUserToChannel(User& user, Channel& channel)
-{
-    channel.userAdd(user);
-}
-
-
-void    Server::rmUserFromChannel(User& user, Channel& channel)
+void    Server::userRmFromChannel(User& user, Channel& channel)
 {
     if ( channel.userRemove(user) == 0)
         channelDestroy(channel);
+}
+
+void    Server::channelCreate(std::string chaname)
+{
+    _channels.push_back( new Channel(chaname) );
 }
 
 void    Server::channelDestroy(Channel& channel)

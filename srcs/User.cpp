@@ -45,7 +45,6 @@ bool    User::operator==(const int sock)
 }
 
 
-
 int User::getSocket() const
 {
     return _socket;
@@ -55,18 +54,6 @@ void    User::quitServer()
 {
 
 }
-
-// bool    checkChannelExists(std::string chaname)
-// {
-//   for (std::vector<Channel>::iterator it = Server::_channels.begin() ; it != Server::_channels.end(); ++it)
-//   {
-//     // if (it->name == chaname)
-//     // {
-//     //     it->users.push_back()
-//     // }
-//   }
-//     return true;
-// }
 
 void User::says(std::string message, Server *server)
 {
@@ -86,24 +73,19 @@ void User::says(std::string message, Server *server)
 
 void	User::channelJoin(Server* server, std::string chaname)
 {
-	_channels.push_back( server->addUserToChannel(*this, chaname) );
+	_channels.push_back( server->userAddToChannel(*this, chaname) );
 }
-
-// void	User::channelSubscribe(Server* server, Channel& channel)
-// {
-// 	server->addUserToChannel(*this, channel);
-// }
 
 void	User::channelLeave(Server* server, Channel& channel)
 {
-	server->rmUserFromChannel(*this, channel);
+	server->userRmFromChannel(*this, channel);
 }
 
 void	User::channelsDrop()
 {
 	for (std::list<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
 	{
-		_server->rmUserFromChannel(*this, **it);
+		_server->userRmFromChannel(*this, **it);
 	}
 	_channels.clear();
 }

@@ -70,7 +70,6 @@ private:
     socklen_t               _addr_size;
     int                     _listenSocket;
 
-    Server();
     int                     isNewUser(fd_set& readFDs);
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(fd_set& readFDs);
@@ -78,6 +77,7 @@ private:
 
     void                    disconnect(const int sock);
 
+    void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
 public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
@@ -86,8 +86,7 @@ public:
     
     ServerEnvironment       getEnvironment() const;
     std::vector<int>        getClientFDs() const;
-    std::list<User*>         getUsers() const;
-    // std::vector<Channel>    getChannels() const;
+    std::list<User*>        getUsers() const;
     sockaddr_in             getAddress() const;
     socklen_t               getAddrSize() const;
     int                     getSocket() const;
@@ -96,17 +95,14 @@ public:
 
     void                    setEnvironment(ServerEnvironment environment);
     void                    setClientFDs(std::vector<int> clientFDs);
-    // void                    setUsers(std::list<User> users);
-    // void                    setChannels(std::vector<Channel> channels);
     void                    setAddress(sockaddr_in address);
     void                    setAddrSize(socklen_t addrSize);
     void                    setSocket(int socket);
 
     /*  API */
-    Channel*                addUserToChannel(User& user, std::string chaname);
-    void                    addUserToChannel(User& user, Channel& channel);
-
-    void                    rmUserFromChannel(User& user, Channel& channel);
+    void                    userCreate(int socket);
+    Channel*                userAddToChannel(User& user, std::string chaname);
+    void                    userRmFromChannel(User& user, Channel& channel);
     void                    channelDestroy(Channel& channel);
 
 };

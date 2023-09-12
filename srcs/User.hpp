@@ -49,8 +49,7 @@ public:
     void    says(std::string message, Server *server);
 	
 	void	channelJoin(Server* server, std::string chaname);
-	// void	channelSubscribe(Server* server, Channel& channel);
- 
+
 	void	channelLeave(Server* server, Channel& channel);
 
 	void	channelsDrop();
