@@ -105,9 +105,11 @@ void Server::acceptConnection(int& fdMax)
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
 
-    _users.push_back( new User(this, newUserSocket) );
 
-    _users.back()->channelJoin(this, "#hello");
+    User*   newuser = new User(this, newUserSocket);
+    _users.push_back( newuser );
+
+    newuser->channelJoin(this, "#hello");
 }
 
 std::string receiveMsg(int rcvFD)
@@ -208,8 +210,6 @@ void    Server::disconnect(const int sock)
 
     User*   userdelete = &getUserBySocket(sock);
 
-    userdelete->channelsDrop();
-
     _users.remove(userdelete);
 
     delete userdelete;
@@ -277,7 +277,7 @@ void Server::setSocket(int socket)
 }
 
 
-void    Server::addUserToChannel(User& user, Channel channel)
+Channel*    Server::addUserToChannel(User& user, std::string chaname)
 {
     Channel*    chan;
     try
@@ -292,24 +292,23 @@ void    Server::addUserToChannel(User& user, Channel channel)
         _channels.push_back( chan );
     }
 
-    chan->userAdd(user);    
+    chan->userAdd(user);
+    return chan;
 }
 
-void    Server::rmUserFromChannel(User& user, Channel channel)
+void    Server::addUserToChannel(User& user, Channel& channel)
 {
-    Channel*    chan;
-    try
-    {
-        chan = &getChannel(_channels, chaname);
-        chan->userRemove(user);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << '\n';
-    }
+    channel.userAdd(user);
 }
 
-void    Server::destroyChannel(Channel& channel)
+
+void    Server::rmUserFromChannel(User& user, Channel& channel)
+{
+    if ( channel.userRemove(user) == 0)
+        channelDestroy(channel);
+}
+
+void    Server::channelDestroy(Channel& channel)
 {
     channel.usersDrop();
     _channels.remove(&channel);

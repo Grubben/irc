@@ -22,7 +22,7 @@ public:
 
 	/*	API	*/
 	void	userAdd(User& user);
-	void	userRemove(User& user);
+	int		userRemove(User& user);
 
 	void	usersDrop();
 };

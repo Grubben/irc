@@ -32,23 +32,19 @@ void    Channel::userAdd(User& user)
     _chanusers.push_back(&user);
 }
 
-void    Channel::userRemove(User& user)
+int    Channel::userRemove(User& user)
 {
     _chanusers.remove(&user);
-    if (_chanusers.size() == 0)
-    {
-        _server->destroyChannel(*this);
-    }
-
+    return _chanusers.size();
 }
 
 void    Channel::usersDrop()
 {
-    User*   useri;
-
-    for (User* useri = _chanusers.pop_back(); _chanusers.size > 0; useri = _chanusers.pop_back())
+    while (_chanusers.size() > 0)
     {
+        User*   useri = _chanusers.back();
         useri->channelLeave(_server, *this);
+        _chanusers.pop_back();
     }
 }
 

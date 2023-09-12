@@ -22,6 +22,9 @@ User::User(const User& copy)
 User::~User(void)
 {
 	std::cout << "User destructor called" << std::endl;
+
+	this->channelsDrop();
+
 	close(_socket);
 }
 
@@ -53,8 +56,8 @@ void    User::quitServer()
 
 }
 
-bool    checkChannelExists(std::string chaname)
-{
+// bool    checkChannelExists(std::string chaname)
+// {
 //   for (std::vector<Channel>::iterator it = Server::_channels.begin() ; it != Server::_channels.end(); ++it)
 //   {
 //     // if (it->name == chaname)
@@ -62,8 +65,8 @@ bool    checkChannelExists(std::string chaname)
 //     //     it->users.push_back()
 //     // }
 //   }
-    return true;
-}
+//     return true;
+// }
 
 void User::says(std::string message, Server *server)
 {
@@ -81,12 +84,17 @@ void User::says(std::string message, Server *server)
 //     }
 // }
 
-void	User::channelJoin(Server* server, Channel channel)
+void	User::channelJoin(Server* server, std::string chaname)
 {
-	server->addUserToChannel(*this, channel);
+	_channels.push_back( server->addUserToChannel(*this, chaname) );
 }
 
-void	User::channelLeave(Server* server, Channel channel)
+// void	User::channelSubscribe(Server* server, Channel& channel)
+// {
+// 	server->addUserToChannel(*this, channel);
+// }
+
+void	User::channelLeave(Server* server, Channel& channel)
 {
 	server->rmUserFromChannel(*this, channel);
 }
@@ -95,7 +103,7 @@ void	User::channelsDrop()
 {
 	for (std::list<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
 	{
-		_server->rmUserFromChannel(*this, (*it)->_name);
+		_server->rmUserFromChannel(*this, **it);
 	}
 	_channels.clear();
 }

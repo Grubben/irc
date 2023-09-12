@@ -103,10 +103,11 @@ public:
     void                    setSocket(int socket);
 
     /*  API */
-    void                    addUserToChannel(User& user, std::string chaname);
-    void                    rmUserFromChannel(User& user, std::string chaname);
+    Channel*                addUserToChannel(User& user, std::string chaname);
+    void                    addUserToChannel(User& user, Channel& channel);
 
-    void                    destroyChannel(Channel& channel);
+    void                    rmUserFromChannel(User& user, Channel& channel);
+    void                    channelDestroy(Channel& channel);
 
 };
 
