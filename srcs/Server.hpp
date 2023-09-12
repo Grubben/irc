@@ -75,9 +75,8 @@ private:
     void                    dataReceived(fd_set& readFDs);
     void                    broadcast(const std::string msg);
 
-    void                    disconnect(const int sock);
 
-    void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
+    Channel*                channelCreate(std::string chaname); // Not public. if public will create empty channel
 public:
     Server(ServerEnvironment serverEnvironment);
     ~Server();
@@ -101,8 +100,11 @@ public:
 
     /*  API */
     void                    userCreate(int socket);
-    Channel*                userAddToChannel(User& user, std::string chaname);
+    void                    userDisconnect(const int sock);
+
+    void                    userAddToChannel(User& user, std::string chaname);
     void                    userRmFromChannel(User& user, Channel& channel);
+
     void                    channelDestroy(Channel& channel);
 
 };

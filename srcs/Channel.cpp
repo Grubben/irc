@@ -2,10 +2,12 @@
 #include "Exceptions.hpp"
 #include "Server.hpp"
 
-Channel::Channel(std::string name)
-    : _name(name)
+Channel::Channel(Server* server, std::string name)
+    : _server(server)
+    , _name(name)
 {
 	std::cout << "Channel constructor called" << std::endl;
+    _chanusers.clear();
 }
 
 Channel::Channel(const Channel& copy)
@@ -32,10 +34,14 @@ void    Channel::userAdd(User& user)
     _chanusers.push_back(&user);
 }
 
-int    Channel::userRemove(User& user)
+void    Channel::userRemove(User& user)
 {
     _chanusers.remove(&user);
-    return _chanusers.size();
+    std::cout << "Channel with users: " << _chanusers.size() << std::endl;
+    if (_chanusers.size() == 0)
+    {
+        _server->channelDestroy(*this);
+    }
 }
 
 void    Channel::usersDrop()

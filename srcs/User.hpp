@@ -38,9 +38,6 @@ public:
 
 	int getSocket() const;
 
-    void    quitServer();
-
-
 
 	std::string	name;
 	std::string	nick;
@@ -49,6 +46,7 @@ public:
     void    says(std::string message, Server *server);
 	
 	void	channelJoin(Server* server, std::string chaname);
+	void	channelSubscribe(Server* server, Channel* channel); // Only called by server
 
 	void	channelLeave(Server* server, Channel& channel);
 

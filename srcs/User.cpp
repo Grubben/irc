@@ -50,10 +50,6 @@ int User::getSocket() const
     return _socket;
 }
 
-void    User::quitServer()
-{
-
-}
 
 void User::says(std::string message, Server *server)
 {
@@ -73,7 +69,12 @@ void User::says(std::string message, Server *server)
 
 void	User::channelJoin(Server* server, std::string chaname)
 {
-	_channels.push_back( server->userAddToChannel(*this, chaname) );
+	server->userAddToChannel(*this, chaname);
+}
+
+void	User::channelSubscribe(Server* server, Channel* channel)
+{
+	_channels.push_back(channel);
 }
 
 void	User::channelLeave(Server* server, Channel& channel)
@@ -87,5 +88,4 @@ void	User::channelsDrop()
 	{
 		_server->userRmFromChannel(*this, **it);
 	}
-	_channels.clear();
 }

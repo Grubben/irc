@@ -141,7 +141,7 @@ void Server::dataReceived(fd_set &readFDs)
             {
                 std::cout << "Client has left the network. fd: " << i << std::endl;
                 FD_CLR(i, &_masterFDs);
-                this->disconnect(i);
+                this->userDisconnect(i);
             }
             else
             {
@@ -159,47 +159,7 @@ int Server::isNewUser(fd_set& readFDs)
 }
 
 
-
-std::string ServerMessage::getPrefix() const
-{
-    return _prefix;
-}
-
-std::string ServerMessage::getCommand() const
-{
-    return _command;
-}
-
-std::vector<std::string> ServerMessage::getParams() const
-{
-    return _params;
-}
-
-Server::~Server()
-{
-    close(_listenSocket);
-
-    //TODO: correct clean-up in case of weird stuff
-    _users.clear();  //Warning: Does not delete if there are any left
-    _channels.clear(); //Warning: Does not delete if there are any left
-    //_
-    
-}
-
-User&	Server::getUserBySocket(int socket)
-{
-    for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
-    {
-        if ((*it)->getSocket() == socket)
-        {
-            return (**it);
-        }
-    }
-    throw SocketUnableToFindUser();
-}
-
-
-void    Server::disconnect(const int sock)
+void    Server::userDisconnect(const int sock)
 {
     std::cout << "Server is removing user with fd: " << sock << std::endl;
 
@@ -212,63 +172,13 @@ void    Server::disconnect(const int sock)
     std::cout << "users size: " << _users.size() << std::endl;
 }
 
-ServerEnvironment Server::getEnvironment() const
-{
-    return _environment;
-}
-
-std::list<User*> Server::getUsers() const
-{
-    return _users;
-}
-
-// std::vector<Channel> Server::getChannels() const
-// {
-//     return _channels;
-// }
-
-sockaddr_in Server::getAddress() const
-{
-    return _address;
-}
-
-socklen_t Server::getAddrSize() const
-{
-    return _addr_size;
-}
-
-int Server::getSocket() const
-{
-    return _listenSocket;
-}
-
-void Server::setEnvironment(ServerEnvironment environment)
-{
-    _environment = environment;
-}
-
-void Server::setAddress(sockaddr_in address)
-{
-    _address = address;
-}
-
-void Server::setAddrSize(socklen_t addrSize)
-{
-    _addr_size = addrSize;
-}
-
-void Server::setSocket(int socket)
-{
-    _listenSocket = socket;
-}
-
 void    Server::userCreate(int socket)
 {
     _users.push_back( new User(this, socket) );
 }
 
 
-Channel*    Server::userAddToChannel(User& user, std::string chaname)
+void    Server::userAddToChannel(User& user, std::string chaname)
 {
     Channel*    chan;
     try
@@ -278,22 +188,23 @@ Channel*    Server::userAddToChannel(User& user, std::string chaname)
     catch(const std::exception& e)
     {
         std::cerr << e.what() << '\n';
-        channelCreate(chaname);
+        chan = channelCreate(chaname);
     }
 
+    user.channelSubscribe(this, chan);
     chan->userAdd(user);
-    return chan;
 }
 
 void    Server::userRmFromChannel(User& user, Channel& channel)
 {
-    if ( channel.userRemove(user) == 0)
-        channelDestroy(channel);
+    channel.userRemove(user);
 }
 
-void    Server::channelCreate(std::string chaname)
+Channel*    Server::channelCreate(std::string chaname)
 {
-    _channels.push_back( new Channel(chaname) );
+    Channel*    chan = new Channel(this, chaname);
+    _channels.push_back( chan );
+    return chan;
 }
 
 void    Server::channelDestroy(Channel& channel)

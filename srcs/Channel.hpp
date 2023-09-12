@@ -11,7 +11,7 @@ private:
 	Server*				_server;
 	std::list<User*>	_chanusers;
 public:
-	Channel(std::string name);
+	Channel(Server* server, std::string name);
 	Channel(const Channel& copy);
 	~Channel(void);
 
@@ -22,7 +22,7 @@ public:
 
 	/*	API	*/
 	void	userAdd(User& user);
-	int		userRemove(User& user);
+	void	userRemove(User& user);
 
 	void	usersDrop();
 };
