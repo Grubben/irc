@@ -11,13 +11,7 @@ int main(int argc, char **argv)
     try
     {
         parseInput(argc, argv);
-
-        // init server environment
-        ServerEnvironment serverEnvironment(atoi(argv[1]), argv[2]);
-
-        // start server
-        Server server(serverEnvironment);
-
+        Server server(atoi(argv[1]), argv[2]);
         server.run();
     }
     catch(const std::exception& e)
@@ -25,10 +19,6 @@ int main(int argc, char **argv)
         std::cerr << e.what() << std::endl;
         return (1);
     }
-    
-    // start server loop
-    
-
     return 0;
 }
 

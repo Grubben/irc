@@ -27,6 +27,12 @@ class SocketListeningError : public std::exception
         virtual const char* what() const throw();
 };
 
+class SocketSelectingError : public std::exception
+{
+    public:
+        virtual const char* what() const throw();
+};
+
 class SocketAcceptingError : public std::exception
 {
     public:
@@ -34,12 +40,6 @@ class SocketAcceptingError : public std::exception
 };
 
 class SocketSendingError : public std::exception
-{
-    public:
-        virtual const char* what() const throw();
-};
-
-class SocketReceivingError : public std::exception
 {
     public:
         virtual const char* what() const throw();

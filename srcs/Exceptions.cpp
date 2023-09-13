@@ -21,6 +21,11 @@ const char* SocketListeningError::what() const throw()
     return "Socket listening error";
 }
 
+const char* SocketSelectingError::what() const throw()
+{
+    return "Socket select() error";
+}
+
 const char* SocketAcceptingError::what() const throw()
 {
     return "Socket accepting error";
@@ -29,11 +34,6 @@ const char* SocketAcceptingError::what() const throw()
 const char* SocketSendingError::what() const throw()
 {
     return "Socket sending error";
-}
-
-const char* SocketReceivingError::what() const throw()
-{
-    return "Socket receiving error";
 }
 
 const char* ParserArgCountError::what() const throw()

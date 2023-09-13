@@ -1,11 +1,10 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "ServerEnvironment.hpp"
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
-#include "stringFuncs.hpp"
+#include "Utils.hpp"
 #include "ServerMessage.hpp"
 
 #include <fcntl.h>
@@ -35,78 +34,71 @@
 #define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
 #define SERVER_NAME "ONossoIRC" // por mudar
 
-/*
-    To deal with struct sockaddr, programmers created
-        a parallel structure: struct sockaddr_in (“in”
-        for “Internet”) to be used with IPv4.
+// NOVO: retirar o que não é necessário e mudar valores
+// #define MAX_USERS 10
+// #define MAX_CHANNELS 10
+// #define MAX_CHANNEL_USERS 10
+// #define MAX_CHANNEL_NAME_LENGTH 10
+// #define MAX_NICKNAME_LENGTH 10
+// #define MAX_MESSAGE_LENGTH 10
+// #define MAX_TOPIC_LENGTH 10
 
-    And this is the important bit: a pointer to a struct 
-        sockaddr_in can be cast to a pointer to a struct 
-        sockaddr and vice-versa. So even though connect()
-        wants a struct sockaddr*, you can still use a 
-        struct sockaddr_in and cast it at the last minute!
-    
-    struct sockaddr_in {
-        short int          sin_family;  // Address family, AF_INET
-        unsigned short int sin_port;    // Port number
-        struct in_addr     sin_addr;    // Internet address
-        unsigned char      sin_zero[8]; // Same size as struct sockaddr
-    };
-*/
 typedef struct sockaddr_in sockaddr_in;
 
 class Server
 {
 private:
-    ServerEnvironment       _environment;
     std::list<User*>        _users;
-    std::list<Channel*>    _channels;
-
-    fd_set                  _masterFDs;
-
-    int                     _fdMax;
-
+    std::list<Channel*>     _channels;
+    
     sockaddr_in             _address;
     socklen_t               _addr_size;
+    fd_set                  _masterFDs;
+    int                     _fdMax;
     int                     _listenSocket;
+    int                     _portNumber;
+    std::string             _password;
 
     int                     isNewUser(fd_set& readFDs);
     void                    acceptConnection(int& fdMax);
-    void                    dataReceived(fd_set& readFDs);
-    void                    broadcast(const std::string msg);
-
+    void                    dataReceived(int i);
+    //void                    broadcast(const std::string msg);
 
     Channel*                channelCreate(std::string chaname); // Not public. if public will create empty channel
+
+
 public:
-    Server(ServerEnvironment serverEnvironment);
+    Server(int port, std::string password);
     ~Server();
 
     void                    run();
     
-    ServerEnvironment       getEnvironment() const;
-    std::vector<int>        getClientFDs() const;
-    std::list<User*>        getUsers() const;
-    sockaddr_in             getAddress() const;
-    socklen_t               getAddrSize() const;
-    int                     getSocket() const;
+    std::string             getPassword() const   { return (_password); };
+    int                     getPortNumber() const { return (_portNumber); };
+    std::list<User*>        getUsers() const      { return (_users); };
+    std::list<Channel*>     getChannels() const   { return (_channels); };
+    sockaddr_in             getAddress() const    { return (_address); };
+    socklen_t               getAddrSize() const   { return (_addr_size); };
+    int                     getSocket() const     { return (_listenSocket); };
+    User&	                getUserBySocket(int socket) {
+        for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
+        {
+            if ((*it)->getSocket() == socket)
+                return (**it);
+        }
+        throw SocketUnableToFindUser();
+    };
 
-    User&	                getUserBySocket(int socket);
-
-    void                    setEnvironment(ServerEnvironment environment);
-    void                    setClientFDs(std::vector<int> clientFDs);
-    void                    setAddress(sockaddr_in address);
-    void                    setAddrSize(socklen_t addrSize);
-    void                    setSocket(int socket);
+    void                    setAddress(sockaddr_in address) { _address = address; };
+    void                    setAddrSize(socklen_t addrSize) { _addr_size = addrSize; };
+    void                    setSocket(int socket)           { _listenSocket = socket; };    
 
     /*  API */
     void                    userCreate(int socket);
     void                    userQuit(const int sock);
-
     void                    userAddToChannel(User& user, std::string chaname);
     void                    userRmFromChannel(User& user, Channel& channel);
-
     void                    channelDestroy(Channel& channel);
-
 };
 
 void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);
