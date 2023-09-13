@@ -11,6 +11,20 @@ User::User(Server* server, int userSocket)
 	, _socket(userSocket)
 {
 	std::cout << "User constructor called" << std::endl;
+    _isLoggedIn = false;
+    _isOperator = false;
+
+    /* commands */
+	_commandMap["CAP"] = &User::cap;
+    _commandMap["PASS"] = &User::pass;
+	_commandMap["NICK"] = &User::nick;
+	_commandMap["USER"] = &User::user;
+	_commandMap["OPER"] = &User::oper;
+	_commandMap["QUIT"] = &User::quit;
+	_commandMap["JOIN"] = &User::join;
+	_commandMap["PART"] = &User::part;
+	_commandMap["MODE"] = &User::mode;
+	_commandMap["TOPIC"] = &User::topic;
 }
 
 User::User(const User& copy)
@@ -40,21 +54,28 @@ User&	User::operator= (const User& copy)
 	return (*this);
 }
 
-bool    User::operator==(const int sock)
+void User::execute(std::list<ServerMessage> messageList, Server* server)
 {
-    return this->_socket == sock;
+	std::list<ServerMessage>::iterator it = messageList.begin();
+	for (; it != messageList.end(); it++)
+	{
+		std::string command = it->getCommand();
+		if (_commandMap.find(command) != _commandMap.end())
+		{
+			(this->*_commandMap[command])(messageList, server);
+		}
+		else
+		{
+			std::cout << "Command not found" << std::endl; // needs to send numeric?
+		}
+	}
 }
-
-
-const int& User::getSocket() const
-{
-    return _socket;
-}
-
 
 void User::says(std::string message, Server *server)
 {
-    messageHandler(message, server);
+    std::list<ServerMessage> messageList = loadMessageIntoList(message);
+    
+    this->execute(messageList, server);
 }
 
 // void    Server::broadcast(const std::string msg)

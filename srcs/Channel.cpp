@@ -1,6 +1,4 @@
 #include "Channel.hpp"
-#include "Exceptions.hpp"
-#include "Server.hpp"
 
 Channel::Channel(Server* server, std::string name)
     : _server(server)
@@ -19,6 +17,7 @@ Channel::Channel(const Channel& copy)
 Channel::~Channel(void)
 {
 	std::cout << "Channel destructor called" << std::endl;
+    // NOVO: usersDrop(); Shouldn't this be here?
 }
 
 Channel&	Channel::operator= (const Channel& copy)
@@ -58,7 +57,7 @@ Channel& getChannel(std::list<Channel*>& channels, std::string chaname)
 {
     for (std::list<Channel*>::iterator it = channels.begin(); it != channels.end(); it++)
     {
-        if ((*it)->_name == chaname)
+        if ((*it)->getName() == chaname)
         {
             return *(*it);
         }

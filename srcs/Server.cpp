@@ -1,8 +1,9 @@
 #include "Server.hpp"
 
-Server::Server(ServerEnvironment serverEnvironment)
+Server::Server(int port, std::string password)
 {
-    _environment = serverEnvironment;
+    _portNumber = port;
+    _password = password;
 
     /* Socket initialization with protocol TCP */
     // listenSocket = socket(AF_INET, SOCK_STREAM, getprotobyname("TCP")->p_proto);
@@ -12,23 +13,12 @@ Server::Server(ServerEnvironment serverEnvironment)
 
     /* Set socket options to IPv4, port number and IP address. */
     _address.sin_family = AF_INET;
-    _address.sin_port = htons(_environment.getPortNumber());
+    _address.sin_port = htons(_portNumber);
     _address.sin_addr.s_addr = INADDR_ANY; // inet_addr("some ip in here "); or assign INADDR_ANY to the s_addr field if you want to bind to your local IP address
     memset(_address.sin_zero, '\0', sizeof(_address.sin_zero));
+    _addr_size = sizeof(_address);
 
-    _addr_size = sizeof(_address); // Was Missing!!
-
-    /*
-        When a network socket is closed, it normally enters the TIME_WAIT
-            state for a certain period of time. This is basically the 
-            operating system reserving the socket address to ensure that
-            any delayed or out-of-order packets are not mistakenly associated
-            with a new connection.
-
-        By setting the SO_REUSEADDR, we can reuse the same socket address
-            immediately after it has been closed (even if it is in TIME_WAIT
-            state).
-    */
+    /* Set socket options to reuse address for fast server resets */
     int yes = 1;
     if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
         throw SocketOptionsError();
@@ -41,24 +31,34 @@ Server::Server(ServerEnvironment serverEnvironment)
     if (listen(_listenSocket, BACKLOG) == -1)
         throw SocketListeningError();
 
-    std::cout << "Server listening on port " << _environment.getPortNumber() << std::endl;
+    std::cout << "Server listening on port " << _portNumber << std::endl;
 
     /* Set socket to non-blocking */
     fcntl(_listenSocket, F_SETFL, O_NONBLOCK);
 }
 
+Server::~Server()
+{
+    close(_listenSocket);
+
+    //TODO: correct clean-up in case of weird stuff
+    // _users.clear();  //Warning: Does not delete if there are any left
+    // _channels.clear(); //Warning: Does not delete if there are any left
+    //_
+    
+}
 
 void Server::run()
 {
+    int n;
     fd_set  readFDs;
     std::string msg;
 
     FD_ZERO(&_masterFDs);
     FD_SET(_listenSocket, &_masterFDs);
     _fdMax = _listenSocket;
-    int n;
 
-    while (true)
+    for ( ;; )
     {
         struct timeval tv = {200, 200};
         readFDs = _masterFDs;
@@ -67,97 +67,87 @@ void Server::run()
         if (n == -1)
         {
             perror("select");
-            exit(-1);
+            throw SocketSelectingError();
         }
-        if (n == 0)
+        else if (n == 0)
         {
             std::cout << "Timeout. Trying again..." << std::endl;
             continue;
         }
         std::cout << n << " polls triggered" << std::endl;
 
-
-        if (FD_ISSET(_listenSocket, &readFDs))
+        for (int i = 0; i <= _fdMax; i++)
         {
-            acceptConnection(_fdMax);
-            // if (n == 1)
-            //     continue;
+            if (FD_ISSET(i, &readFDs))
+            {
+                if (i == _listenSocket)
+                    acceptConnection(_fdMax);
+                else
+                    dataReceived(i);
+            }
         }
-        dataReceived(readFDs);
     }
 }
 
 void Server::acceptConnection(int& fdMax)
 {
     std::cout << "New connection" << std::endl;
-    int newUserSocket = accept(_listenSocket, (sockaddr *)&_address, &_addr_size);
 
+    sockaddr_in newUserAddress;
+    socklen_t newUserAddrSize = sizeof(newUserAddress);
+
+    int newUserSocket = accept(_listenSocket, (sockaddr *)&newUserAddress, &newUserAddrSize);
     if (newUserSocket == -1)
     {
-        perror("acceptConnection");
+        perror("accept:");
         throw SocketAcceptingError();
     }
-    fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
     std::cout << "Creating new user with fd: " << newUserSocket << std::endl;
-
+    fcntl(newUserSocket, F_SETFL, O_NONBLOCK);
     FD_SET(newUserSocket, &_masterFDs);
-
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
-
-
     userCreate(newUserSocket);
-
     userAddToChannel(getUserBySocket(newUserSocket), "#hello");
 }
 
-std::string receiveMsg(int rcvFD)
+void Server::dataReceived(int i)
 {
     char message[1024] = "";
-    int len = recv(rcvFD, message, sizeof(message) - 1, 0);
-
-    if(len > 0)
+    int len;;
+    if ((len = recv(i, message, sizeof(message) - 1, 0) <= 0))
     {
+        if (len == 0)
+            std::cout << "Client has left the network. fd: " << i << std::endl;
+        else
+        {
+            perror("recv");
+        }
         message[len] = 0;
-        return message;
-    }
-    else if (len == 0)
-    {
-        return "";
+        close(i);
+        FD_CLR(i, &_masterFDs);
+        this->userQuit(i);
     }
     else
-        throw SocketReceivingError();
-
-}
-
-void Server::dataReceived(fd_set &readFDs)
-{
-    for (int i = _listenSocket + 1; i <= _fdMax; i++)
     {
-        if (FD_ISSET(i, &readFDs))
-        {
-            std::string msg = receiveMsg(i);
-            if (msg == "")
-            {
-                std::cout << "Client has left the network. fd: " << i << std::endl;
-                FD_CLR(i, &_masterFDs);
-                this->userQuit(i);
-            }
-            else
-            {
-                //TODO: meter aqui o message Handler com o .says()
-                getUserBySocket(i).says(msg, this);
-                std::cout << msg;
-            }
-        }
+        getUserBySocket(i).says(message, this);
+        std::cout << message;
+
+        //send message to all clients but ourself and listenSocket
+        //for (int j = _listenSocket + 1; j <= _fdMax; j++)
+        //{
+        //    if (FD_ISSET(j, &_masterFDs))
+        //    {
+        //        if (j != _listenSocket && j != i)
+        //        {
+        //            if (send(j, message, len, 0) == -1) //maybe need to make the sendall() function
+        //                perror("send");
+        //        }
+        //    }
+        //}
     }
-}
 
-int Server::isNewUser(fd_set& readFDs)
-{
-    return (FD_ISSET(_listenSocket, &readFDs));
 }
-
 
 void    Server::userQuit(const int sock)
 {
@@ -187,7 +177,7 @@ void    Server::userAddToChannel(User& user, std::string chaname)
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << e.what() << std::endl;
         chan = channelCreate(chaname);
     }
 
