@@ -59,13 +59,10 @@ private:
     int                     _portNumber;
     std::string             _password;
 
-    int                     isNewUser(fd_set& readFDs);
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
-    //void                    broadcast(const std::string msg);
 
     Channel*                channelCreate(std::string chaname); // Not public. if public will create empty channel
-
 
 public:
     Server(int port, std::string password);
@@ -75,8 +72,8 @@ public:
     
     std::string             getPassword() const   { return (_password); };
     int                     getPortNumber() const { return (_portNumber); };
-    std::list<User*>        getUsers() const      { return (_users); };
-    std::list<Channel*>     getChannels() const   { return (_channels); };
+    // std::list<User*>        getUsers() const      { return (_users); };
+    // std::list<Channel*>     getChannels() const   { return (_channels); };
     sockaddr_in             getAddress() const    { return (_address); };
     socklen_t               getAddrSize() const   { return (_addr_size); };
     int                     getSocket() const     { return (_listenSocket); };

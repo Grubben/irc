@@ -27,23 +27,23 @@ private:
 	bool 				_isLoggedIn; // if false, user cannot access commands apart from PASS, NICK, USER, OPER(?), QUIT
 	bool 				_isOperator;
 
-	// User();
+	void	channelsDrop(); //Not API: only used internally
 
+	User(const User& copy);
 public:
 	User(Server* server, int userSocket);
-	User(const User& copy);
 	User& operator= (const User& copy);
 	virtual ~User(void);
 
-    bool    	operator==(const int sock) 	{ return this->_socket == sock; };
+    bool    			operator==(const int sock) 	{ return this->_socket == sock; };
 	
-	const int& 	getSocket() const 			{ return _socket; }
-	std::string getNick() const 			{ return _nickname; }
-	std::string getName() const 			{ return _username; }
+	const int& 			getSocket() const 			{ return _socket; }
+	const std::string&	getNick() const 			{ return _nickname; }
+	const std::string&	getName() const 			{ return _username; }
 
 	
-	void 		setNick(std::string nickname) 	{ this->_nickname = nickname; }
-	void 		setName(std::string username) 	{ this->_username = username; }
+	void	setNick(std::string nickname) 	{ this->_nickname = nickname; }
+	void	setName(std::string username) 	{ this->_username = username; }
 
 	/* API */
     void    says(std::string message, Server *server);
@@ -51,7 +51,7 @@ public:
 	void	channelJoin(Server* server, std::string chaname);
 	void	channelSubscribe(Channel* channel); // Only called by server
 	void	channelPart(Server* server, Channel& channel);
-	void	channelsDrop();
+	//TODO:	serverQuit
 
 
 	/* Commands*/

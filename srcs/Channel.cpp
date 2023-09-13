@@ -17,7 +17,7 @@ Channel::Channel(const Channel& copy)
 Channel::~Channel(void)
 {
 	std::cout << "Channel destructor called" << std::endl;
-    // NOVO: usersDrop(); Shouldn't this be here?
+    usersDrop();
 }
 
 Channel&	Channel::operator= (const Channel& copy)

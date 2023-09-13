@@ -1,11 +1,6 @@
 #include "User.hpp"
 #include "Server.hpp"
 
-// User::User(void)
-// {
-// 	std::cout << "User constructor called" << std::endl;
-// }
-
 User::User(Server* server, int userSocket)
 	: _server(server)
 	, _socket(userSocket)
@@ -49,7 +44,6 @@ User&	User::operator= (const User& copy)
 	if (this != &copy)
 	{
 		this->_server = copy._server;
-		// this->_socket = copy._socket;
 	}
 	return (*this);
 }
@@ -77,17 +71,6 @@ void User::says(std::string message, Server *server)
     
     this->execute(messageList, server);
 }
-
-// void    Server::broadcast(const std::string msg)
-// {
-//     std::vector<User>::iterator it = users.begin();
-//     for (; it != users.end(); it++)
-//     {
-//         // if (*it != *it)
-//         if (send(*it, msg.c_str(), msg.length(), 0) == -1)
-//             throw SocketSendingError();
-//     }
-// }
 
 void	User::channelJoin(Server* server, std::string chaname)
 {

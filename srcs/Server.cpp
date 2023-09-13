@@ -41,11 +41,11 @@ Server::~Server()
 {
     close(_listenSocket);
 
-    //TODO: correct clean-up in case of weird stuff
-    // _users.clear();  //Warning: Does not delete if there are any left
-    // _channels.clear(); //Warning: Does not delete if there are any left
-    //_
-    
+    // It has to be backwards
+    for (std::list<User*>::iterator it = _users.end(); it != _users.begin(); it--)
+    {
+        userQuit((*it)->getSocket());
+    }
 }
 
 void Server::run()
@@ -132,19 +132,6 @@ void Server::dataReceived(int i)
     {
         getUserBySocket(i).says(message, this);
         std::cout << message;
-
-        //send message to all clients but ourself and listenSocket
-        //for (int j = _listenSocket + 1; j <= _fdMax; j++)
-        //{
-        //    if (FD_ISSET(j, &_masterFDs))
-        //    {
-        //        if (j != _listenSocket && j != i)
-        //        {
-        //            if (send(j, message, len, 0) == -1) //maybe need to make the sendall() function
-        //                perror("send");
-        //        }
-        //    }
-        //}
     }
 
 }
@@ -166,7 +153,6 @@ void    Server::userCreate(int socket)
 {
     _users.push_back( new User(this, socket) );
 }
-
 
 void    Server::userAddToChannel(User& user, std::string chaname)
 {
@@ -199,7 +185,6 @@ Channel*    Server::channelCreate(std::string chaname)
 
 void    Server::channelDestroy(Channel& channel)
 {
-    channel.usersDrop();
     _channels.remove(&channel);
     delete &channel;
 }
