@@ -35,6 +35,19 @@ Server::Server(int port, std::string password)
 
     /* Set socket to non-blocking */
     fcntl(_listenSocket, F_SETFL, O_NONBLOCK);
+
+    /*  commands    */
+    _commandMap["CAP"] = &Server::cap;
+    _commandMap["PASS"] = &Server::pass;
+	_commandMap["NICK"] = &Server::nick;
+	_commandMap["USER"] = &Server::user;
+	_commandMap["OPER"] = &Server::oper;
+	_commandMap["QUIT"] = &Server::quit;
+	_commandMap["JOIN"] = &Server::join;
+	_commandMap["PART"] = &Server::part;
+	_commandMap["MODE"] = &Server::mode;
+	_commandMap["TOPIC"] = &Server::topic;
+
 }
 
 Server::~Server()
@@ -130,7 +143,7 @@ void Server::dataReceived(int i)
     }
     else
     {
-        getUserBySocket(i).says(message, this);
+        getUserBySocket(i).says(message);
         std::cout << message;
     }
 

@@ -48,11 +48,12 @@ typedef struct sockaddr_in sockaddr_in;
 class Server
 {
 private:
-    // std::list<User*>        _users;
     std::map<int, User>             _users;
-    // std::list<Channel*>     _channels;
     std::map<std::string, Channel>  _channels;
     
+	std::map<std::string, void (Server::*)(std::list<ServerMessage>)> _commandMap;
+
+
     sockaddr_in             _address;
     socklen_t               _addr_size;
     fd_set                  _masterFDs;
@@ -89,7 +90,7 @@ public:
 
     void                    setAddress(sockaddr_in address) { _address = address; };
     void                    setAddrSize(socklen_t addrSize) { _addr_size = addrSize; };
-    void                    setSocket(int socket)           { _listenSocket = socket; };    
+    // void                    setSocket(int socket)           { _listenSocket = socket; };    
 
     /*  API */
     void                    userCreate(int socket);
@@ -97,6 +98,20 @@ public:
     void                    userAddToChannel(User& user, std::string chaname); // Creates channel if non-existant
     void                    userRmFromChannel(User& user, std::string chaname);
     // void                    channelDestroy(Channel& channel); //TODO: do we need this func?
+
+    /* Commands*/
+	void 	execute(std::list<ServerMessage> messageList);
+	void	cap(std::list<ServerMessage> messageList);
+	void	pass(std::list<ServerMessage> messageList);
+	void	nick(std::list<ServerMessage> messageList);
+	void	user(std::list<ServerMessage> messageList);
+	void	oper(std::list<ServerMessage> messageList);
+	void	quit(std::list<ServerMessage> messageList);
+	void	join(std::list<ServerMessage> messageList);
+	void	part(std::list<ServerMessage> messageList);
+	void	mode(std::list<ServerMessage> messageList);
+	void	topic(std::list<ServerMessage> messageList);
+
 };
 
 void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);

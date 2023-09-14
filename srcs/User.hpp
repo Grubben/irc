@@ -19,8 +19,6 @@ private:
 	Server&				_server;
 	const int			_socket;
 	std::map<std::string, Channel&> _channels;
-
-	std::map<std::string, void (User::*)(std::list<ServerMessage>, Server*)> _commandMap;
 	
 	std::string			_username;
 	std::string			_nickname;
@@ -47,26 +45,11 @@ public:
 	void	setName(std::string username) 	{ this->_username = username; }
 
 	/* API */
-    void    says(std::string message, Server *server);
+    void    says(std::string message);
 	
 	void	channelJoin(Channel& channel);
 	void	channelPart(std::string chaname);
 	//TODO:	serverQuit
-
-
-	/* Commands*/
-	void 	execute(std::list<ServerMessage> messageList, Server* server);
-	void	cap(std::list<ServerMessage> messageList, Server* server);
-	void	pass(std::list<ServerMessage> messageList, Server* server);
-	void	nick(std::list<ServerMessage> messageList, Server* server);
-	void	user(std::list<ServerMessage> messageList, Server* server);
-	void	oper(std::list<ServerMessage> messageList, Server* server);
-	void	quit(std::list<ServerMessage> messageList, Server* server);
-	void	join(std::list<ServerMessage> messageList, Server* server);
-	void	part(std::list<ServerMessage> messageList, Server* server);
-	void	mode(std::list<ServerMessage> messageList, Server* server);
-	void	topic(std::list<ServerMessage> messageList, Server* server);
-
 
 };
 
