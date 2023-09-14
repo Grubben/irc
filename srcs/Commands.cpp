@@ -118,7 +118,8 @@ void Server::user(ServerMessage serverMessage)
     {
         if (it->second.getUsername() == serverMessage.getParams()[0])
         {
-            // error username in use
+            // need to remove both users from map
+            std::cout << "user in use" << std::endl;
             _stop = true;
             return;
         }
