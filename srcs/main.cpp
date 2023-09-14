@@ -4,6 +4,14 @@ void parseInput(int argc, char **argv);
 void checkPortNumber(char *port);
 void checkPassword(std::string password);
 
+bool g_isRunning = true;
+
+void    sighandler(int signum)
+{
+    (void) signum;
+    g_isRunning = false;
+}
+
 int main(int argc, char **argv)
 {
     std::cout << std::unitbuf;
@@ -11,7 +19,10 @@ int main(int argc, char **argv)
     try
     {
         parseInput(argc, argv);
-        Server server(atoi(argv[1]), argv[2]);
+        Server server(atoi(argv[1]), argv[2]);        
+        
+        signal(SIGINT, sighandler);
+
         server.run();
     }
     catch(const std::exception& e)

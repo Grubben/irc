@@ -47,6 +47,8 @@ Server::Server(int port, std::string password)
 	_commandMap["PART"] = &Server::part;
 	_commandMap["MODE"] = &Server::mode;
 	_commandMap["TOPIC"] = &Server::topic;
+
+    _isRunning = true;
 }
 
 Server::~Server()
@@ -70,16 +72,16 @@ void Server::run()
     FD_SET(_listenSocket, &_masterFDs);
     _fdMax = _listenSocket;
 
-    for ( ;; )
+    g_isRunning = true;
+    while (g_isRunning)
     {
         struct timeval tv = {200, 200};
         readFDs = _masterFDs;
-
+        
         n = select(_fdMax + 1, &readFDs, NULL, NULL, &tv);
         if (n == -1)
         {
-            perror("select");
-            throw SocketSelectingError();
+            break;
         }
         else if (n == 0)
         {
@@ -142,8 +144,13 @@ void Server::dataReceived(int i)
     }
     else
     {
-        getUserBySocket(i).says(message);
-        std::cout << message;
+        std::string toSendMessage(message);
+        User& user = getUserBySocket(i);
+
+        if (toSendMessage.find('\n') != std::string::npos)
+            user.says(user.flushBuffer() + toSendMessage);
+        else
+            user.addBuffer(toSendMessage);
     }
 
 }
@@ -162,21 +169,23 @@ void    Server::userQuit(const int socket)
 
 void    Server::userCreate(int socket)
 {
-    _users.insert(std::pair<int,User>(socket, User(*this, socket)));
+    _users.insert(std::pair<int, User>(socket, User(*this, socket)));
+
+    // std::map<int,User>::iterator search = _users.find(socket);
+    // std::cout << _users.find(socket)->first << std::endl;
+    // _users.erase(search);
+    // std::cout << _users.find(socket)->first << std::endl;
 }
 
 void    Server::userAddToChannel(User& user, std::string chaname)
 {
-    std::map<std::string,Channel>::iterator    chan;
-    try
+    std::map<std::string,Channel>::iterator chan = _channels.find(chaname);
+
+    if (chan == _channels.end())
     {
-        chan = _channels.find(chaname);
-    }
-    catch(const std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
         _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
     }
+    chan = _channels.find(chaname);
 
     user.channelJoin(chan->second);
     chan->second.userAdd(user);
@@ -186,7 +195,9 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
 {
     user.channelPart(chaname);
 
-    std::map<std::string,Channel>::iterator search = _channels.find(chaname);
+    std::map<std::string, Channel>::iterator search = _channels.find(chaname);
+    if (search == _channels.end())
+        return ;
     int nusers = search->second.userRemove(user);
     if (nusers == 0)
         _channels.erase(search);

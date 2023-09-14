@@ -1,11 +1,6 @@
+#pragma once
 #ifndef SERVER_HPP
 #define SERVER_HPP
-
-#include "Exceptions.hpp"
-#include "User.hpp"
-#include "Channel.hpp"
-#include "Utils.hpp"
-#include "ServerMessage.hpp"
 
 #include <fcntl.h>
 #include <list>
@@ -15,6 +10,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <vector>
+#include <signal.h>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -28,6 +24,15 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+
+#include "Exceptions.hpp"
+#include "User.hpp"
+#include "Channel.hpp"
+#include "Utils.hpp"
+#include "ServerMessage.hpp"
+#include "NumericMacros.hpp"
+
+extern bool g_isRunning;
 
 #define BACKLOG 10
 
@@ -43,6 +48,7 @@
 // #define MAX_MESSAGE_LENGTH 10
 // #define MAX_TOPIC_LENGTH 10
 
+
 typedef struct sockaddr_in sockaddr_in;
 
 class Server
@@ -53,7 +59,6 @@ private:
     
 	std::map<std::string, void (Server::*)(std::list<ServerMessage>)> _commandMap;
 
-
     sockaddr_in             _address;
     socklen_t               _addr_size;
     fd_set                  _masterFDs;
@@ -61,6 +66,7 @@ private:
     int                     _listenSocket;
     int                     _portNumber;
     std::string             _password;
+    bool                    _isRunning;
 
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
@@ -70,6 +76,7 @@ private:
 public:
     Server(int port, std::string password);
     ~Server();
+    
 
     void                    run();
     
@@ -91,7 +98,7 @@ public:
     void                    setAddress(sockaddr_in address) { _address = address; };
     void                    setAddrSize(socklen_t addrSize) { _addr_size = addrSize; };
     // void                    setSocket(int socket)           { _listenSocket = socket; };    
-
+    
     /*  API */
     void                    userCreate(int socket);
     void                    userQuit(const int sock);

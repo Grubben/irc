@@ -18,7 +18,6 @@ Channel::Channel(const Channel& copy)
 Channel::~Channel(void)
 {
 	std::cout << "Channel destructor called" << std::endl;
-    usersDrop();
 }
 
 Channel&	Channel::operator= (const Channel& copy)
@@ -38,8 +37,9 @@ void    Channel::userAdd(User& user)
 
 int    Channel::userRemove(User& user)
 {
-    std::map<int,User*>::iterator search = _chanusers.find(user.getSocket());
-    _chanusers.erase(search);
+    std::map<int, User*>::iterator search = _chanusers.find(user.getSocket());
+    if (search != _chanusers.end())
+        _chanusers.erase(search);
 
     std::cout << "Channel with users: " << _chanusers.size() << std::endl;
 
