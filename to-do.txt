@@ -1,8 +1,14 @@
-http://beej.us/guide/bgnet/
-https://www.rfc-editor.org/rfc/rfc1459.html
-https://www.alien.net.au/irc/irc2numerics.html
-https://modern.ircdocs.horse/
+Beej Guide
+    http://beej.us/guide/bgnet/
 
+Numerics:
+    https://www.alien.net.au/irc/irc2numerics.html
+
+
+Commands:
+    https://modern.ircdocs.horse/
+    https://www.rfc-editor.org/rfc/rfc1459.html
+    https://datatracker.ietf.org/doc/html/rfc1459
 
 
 

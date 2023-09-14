@@ -138,7 +138,6 @@ void Server::acceptConnection(int& fdMax)
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
     userCreate(newUserSocket);
-    userAddToChannel(getUserBySocket(newUserSocket), "#hello");
 }
 
 void Server::dataReceived(int i)

@@ -16,6 +16,7 @@ void Server::execute(std::list<ServerMessage> messageList)
 		}
 	}
 }
+
 void Server::cap(std::list<ServerMessage> ServerMessage)
 {
     (void) ServerMessage;
