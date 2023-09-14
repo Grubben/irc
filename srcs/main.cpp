@@ -19,7 +19,7 @@ int main(int argc, char **argv)
     try
     {
         parseInput(argc, argv);
-        Server server(atoi(argv[1]), argv[2]);        
+        Server server(argv[1], argv[2]);        
         
         signal(SIGINT, sighandler);
 

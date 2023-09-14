@@ -49,7 +49,7 @@ extern bool g_isRunning;
 // #define MAX_TOPIC_LENGTH 10
 
 
-typedef struct sockaddr_in sockaddr_in;
+typedef struct addrinfo addrinfo;
 
 class Server
 {
@@ -59,14 +59,18 @@ private:
     
 	std::map<std::string, void (Server::*)(std::list<ServerMessage>)> _commandMap;
 
-    sockaddr_in             _address;
+    addrinfo                _address;
+    addrinfo                _hints;
     socklen_t               _addr_size;
     fd_set                  _masterFDs;
+    char                    _remoteIP[INET6_ADDRSTRLEN];
     int                     _fdMax;
     int                     _listenSocket;
-    int                     _portNumber;
+    
+    std::string             _portNumber;
     std::string             _password;
     bool                    _isRunning;
+
 
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
@@ -74,18 +78,15 @@ private:
     void                channelCreate(std::string chaname); // Not public. if public will create empty channel
 
 public:
-    Server(int port, std::string password);
+    Server(std::string port, std::string password);
     ~Server();
     
 
     void                    run();
     
     std::string             getPassword() const   { return (_password); };
-    int                     getPortNumber() const { return (_portNumber); };
     // std::list<User*>        getUsers() const      { return (_users); };
     // std::list<Channel*>     getChannels() const   { return (_channels); };
-    sockaddr_in             getAddress() const    { return (_address); };
-    socklen_t               getAddrSize() const   { return (_addr_size); };
     int                     getSocket() const     { return (_listenSocket); };
     User&	                getUserBySocket(int socket) {
         std::map<int, User>::iterator search = _users.find(socket);
@@ -94,10 +95,6 @@ public:
         else
             throw SocketUnableToFindUser();
     };
-
-    void                    setAddress(sockaddr_in address) { _address = address; };
-    void                    setAddrSize(socklen_t addrSize) { _addr_size = addrSize; };
-    // void                    setSocket(int socket)           { _listenSocket = socket; };    
     
     /*  API */
     void                    userCreate(int socket);

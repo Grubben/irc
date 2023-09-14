@@ -1,31 +1,47 @@
 #include "Server.hpp"
 
-Server::Server(int port, std::string password)
+Server::Server(std::string port, std::string password)
 {
     _portNumber = port;
     _password = password;
 
-    /* Socket initialization with protocol TCP */
-    // listenSocket = socket(AF_INET, SOCK_STREAM, getprotobyname("TCP")->p_proto);
-    _listenSocket = socket(PF_INET, SOCK_STREAM, 0);
-    if (_listenSocket == -1)
-        throw SocketInitializationError();
-
     /* Set socket options to IPv4, port number and IP address. */
-    _address.sin_family = AF_INET;
-    _address.sin_port = htons(_portNumber);
-    _address.sin_addr.s_addr = INADDR_ANY; // inet_addr("some ip in here "); or assign INADDR_ANY to the s_addr field if you want to bind to your local IP address
-    memset(_address.sin_zero, '\0', sizeof(_address.sin_zero));
-    _addr_size = sizeof(_address);
+    memset(&_hints, 0, sizeof(_hints));
+    _hints.ai_family = AF_INET6;
+    _hints.ai_socktype = SOCK_STREAM;
+    _hints.ai_flags = AI_PASSIVE;
+    
+    addrinfo *ai, *p;
+    int rv = getaddrinfo(NULL, _portNumber.c_str(), &_hints, &ai);
+    if(rv  != 0)
+    {
+        throw SocketInitializationError();
+    }
+    for(p = ai; p != NULL; p = p->ai_next)
+    {
+        _listenSocket = socket(p->ai_family, p->ai_socktype, getprotobyname("TCP")->p_proto);
+        if (_listenSocket < 0)
+            continue;
+        
+        int yes = 1;
+        setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    
+        if (bind(_listenSocket, p->ai_addr, p->ai_addrlen) < 0)
+        {
+            close(_listenSocket);
+            continue;
+        }
 
-    /* Set socket options to reuse address for fast server resets */
-    int yes = 1;
-    if (setsockopt(_listenSocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
-        throw SocketOptionsError();
+        break;
+    }
+    
+    if (p == NULL)
+    {
+        std::cout << "No connect" << std::endl;
+        exit(2);
+    }
 
-    /* Bind socket to address */
-    if (bind(_listenSocket, (sockaddr *)&_address, _addr_size) == -1)
-        throw SocketBindingError();
+    freeaddrinfo(ai);    
 
     /* Listen on socket, Backlog is the number of connections allowed on the incoming queue */
     if (listen(_listenSocket, BACKLOG) == -1)
