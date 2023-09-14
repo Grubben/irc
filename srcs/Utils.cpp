@@ -73,14 +73,3 @@ int isDigit(char c)
         return 1;
     return 0;
 }
-
-std::list<ServerMessage> loadMessageIntoList(std::string message)
-{
-    std::vector<std::string> messageBuffer = split(message, "\r\n");
-    std::list<ServerMessage> messageList;
-    for (int i = 0; i < static_cast<int>(messageBuffer.size()); i++)
-    {
-        messageList.push_back(ServerMessage(split(messageBuffer[i], " ")));
-    }
-    return (messageList);
-}

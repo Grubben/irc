@@ -1,7 +1,10 @@
 #include "Server.hpp"
 
+
+
 Server::Server(std::string port, std::string password)
 {
+
     _portNumber = port;
     _password = password;
 
@@ -63,8 +66,6 @@ Server::Server(std::string port, std::string password)
 	_commandMap["PART"] = &Server::part;
 	_commandMap["MODE"] = &Server::mode;
 	_commandMap["TOPIC"] = &Server::topic;
-
-    _isRunning = true;
 }
 
 Server::~Server()
@@ -163,7 +164,7 @@ void Server::dataReceived(int i)
         User& user = getUserBySocket(i);
 
         if (toSendMessage.find('\n') != std::string::npos)
-            user.says(user.flushBuffer() + toSendMessage);
+            user.says(user.flushBuffer() + toSendMessage, *this);
         else
             user.addBuffer(toSendMessage);
     }
@@ -184,7 +185,7 @@ void    Server::userQuit(const int socket)
 
 void    Server::userCreate(int socket)
 {
-    _users.insert(std::pair<int, User>(socket, User(*this, socket)));
+    _users.insert(std::pair<int, User>(socket, User( socket)));
 
     // std::map<int,User>::iterator search = _users.find(socket);
     // std::cout << _users.find(socket)->first << std::endl;
@@ -222,6 +223,7 @@ void    Server::channelCreate(std::string chaname)
 {
     _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
 }
+
 
 // void    Server::channelDestroy(Channel& channel)
 // {

@@ -4,6 +4,7 @@
 
 #include <fcntl.h>
 #include <list>
+#include <map>
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
@@ -35,6 +36,9 @@
 extern bool g_isRunning;
 
 #define BACKLOG 10
+#define ACCEPTED_CHARS_NAME "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-"
+#define ACCEPTED_CHARS_PASS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-_+={}[]|\\:;\"\'<>,.?/"
+
 
 #define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
 #define SERVER_NAME "ONossoIRC" // por mudar
@@ -57,6 +61,7 @@ private:
     std::map<int, User>             _users;
     std::map<std::string, Channel>  _channels;
     
+
 	std::map<std::string, void (Server::*)(ServerMessage)> _commandMap;
 
     addrinfo                _address;
@@ -68,13 +73,14 @@ private:
     
     std::string             _portNumber;
     std::string             _password;
-    bool                    _isRunning;
 
+    int                     _stop;
 
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
-
     void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
+
+
 
 public:
     Server(std::string port, std::string password);

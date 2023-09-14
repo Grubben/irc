@@ -1,18 +1,17 @@
 #include "User.hpp"
 #include "Server.hpp"
 
-User::User(Server& server, int userSocket)
-	: _server(server)
-	, _socket(userSocket)
+User::User() : _socket(-1) 
+{}
+
+User::User(int userSocket): _socket(userSocket)
 {
 	std::cout << "User constructor called" << std::endl;
     _isLoggedIn = false;
     _isOperator = false;
 }
 
-User::User(const User& copy)
-	: _server(copy._server)
-	, _socket(copy._socket)
+User::User(const User& copy):_socket(copy._socket)
 {
 	std::cout << "User copy constructor called" << std::endl;
 	*this = copy;
@@ -40,11 +39,11 @@ User&	User::operator= (const User& copy)
 	return (*this);
 }
 
-void User::says(std::string message)
+void User::says(std::string message, Server& server)
 {
-    std::list<ServerMessage> messageList = loadMessageIntoList(message);
+    std::list<ServerMessage> messageList = ServerMessage::loadMessageIntoList(message, _socket);
     
-    _server.execute(messageList);
+    server.execute(messageList);
 }
 
 void	User::channelJoin(Channel& channel)

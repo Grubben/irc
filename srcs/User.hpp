@@ -16,7 +16,6 @@ class Channel;
 class User
 {
 private:
-	Server&				_server;
 	const int			_socket;
 	std::map<std::string, Channel*> _userChannels;
 	
@@ -31,7 +30,8 @@ private:
 	void	channelsDrop(); //Not API: only used internally
 
 public:
-	User(Server& server, int userSocket);
+	User();
+	User(int userSocket);
 	User(const User& copy);
 	User& operator= (const User& copy);
 	virtual ~User(void);
@@ -39,8 +39,8 @@ public:
     bool    			operator==(const int sock) 	{ return this->_socket == sock; };
 	
 	const int& 			getSocket() const 			{ return _socket; }
-	const std::string&	getNick() const 			{ return _nickname; }
-	const std::string&	getName() const 			{ return _username; }
+	const std::string&	getNickname() const 		{ return _nickname; }
+	const std::string&	getUsername() const 		{ return _username; }
 	const std::string&	getBuffer() const 			{ return _buffer; }
 
 	std::string			setbuffer(std::string toChange) {return toChange;};
@@ -58,11 +58,11 @@ public:
 	}
 
 
-	void	setNick(std::string nickname) 	{ this->_nickname = nickname; }
-	void	setName(std::string username) 	{ this->_username = username; }
+	void	setNickname(std::string nickname) 	{ this->_nickname = nickname; }
+	void	setUsername(std::string username) 	{ this->_username = username; }
 
 	/* API */
-    void    says(std::string message);
+    void    says(std::string message, Server& _server);
 	
 	void	channelJoin(Channel& channel);
 	void	channelPart(std::string chaname);

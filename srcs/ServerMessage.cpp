@@ -4,11 +4,12 @@ ServerMessage::ServerMessage()
 {
 }
 
-ServerMessage::ServerMessage(std::vector<std::string> commandVector)
+ServerMessage::ServerMessage(std::vector<std::string> commandVector, int socket)
 {
     _command = commandVector[0];
     for (int i = 1; i < static_cast<int>(commandVector.size()); i++)
         _params.push_back(commandVector[i]);
+    _socket = socket;
 }
 
 void ServerMessage::outputPrompt()
@@ -21,4 +22,15 @@ void ServerMessage::outputPrompt()
 
 ServerMessage::~ServerMessage()
 {
+}
+
+std::list<ServerMessage> ServerMessage::loadMessageIntoList(std::string message, int socket)
+{
+    std::vector<std::string> messageBuffer = split(message, "\r\n");
+    std::list<ServerMessage> messageList;
+    for (int i = 0; i < static_cast<int>(messageBuffer.size()); i++)
+    {
+        messageList.push_back(ServerMessage(split(messageBuffer[i], " "), socket));
+    }
+    return (messageList);
 }
