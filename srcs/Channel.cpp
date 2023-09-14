@@ -1,6 +1,6 @@
 #include "Channel.hpp"
 
-Channel::Channel(Server* server, std::string name)
+Channel::Channel(Server& server, std::string name)
     : _server(server)
     , _name(name)
 {
@@ -9,6 +9,8 @@ Channel::Channel(Server* server, std::string name)
 }
 
 Channel::Channel(const Channel& copy)
+    : _server(copy._server)
+    , _name(copy._name)
 {
 	std::cout << "Channel copy constructor called" << std::endl;
 	*this = copy;
@@ -30,27 +32,28 @@ Channel&	Channel::operator= (const Channel& copy)
 
 void    Channel::userAdd(User& user)
 {
-    _chanusers.push_back(&user);
+    _chanusers.insert(std::pair<int,User&>(user.getSocket(), user));
 }
 
-void    Channel::userRemove(User& user)
+int    Channel::userRemove(User& user)
 {
-    _chanusers.remove(&user);
+    std::map<int,User&>::iterator search = _chanusers.find(user.getSocket());
+    _chanusers.erase(search);
+
     std::cout << "Channel with users: " << _chanusers.size() << std::endl;
-    if (_chanusers.size() == 0)
-    {
-        _server->channelDestroy(*this);
-    }
+
+    return _chanusers.size();   
 }
 
 void    Channel::usersDrop()
 {
-    while (_chanusers.size() > 0)
-    {
-        User*   useri = _chanusers.back();
-        useri->channelPart(_server, *this);
-        _chanusers.pop_back();
-    }
+    //TODO: Refactor!
+    // while (_chanusers.size() > 0)
+    // {
+    //     User*   useri = _chanusers.back();
+    //     useri->channelPart(_server, *this);
+    //     _chanusers.pop_back();
+    // }
 }
 
 Channel& getChannel(std::list<Channel*>& channels, std::string chaname)

@@ -1,7 +1,7 @@
 #include "User.hpp"
 #include "Server.hpp"
 
-User::User(Server* server, int userSocket)
+User::User(Server& server, int userSocket)
 	: _server(server)
 	, _socket(userSocket)
 {
@@ -23,7 +23,8 @@ User::User(Server* server, int userSocket)
 }
 
 User::User(const User& copy)
-	: _socket(copy._socket)
+	: _server(copy._server)
+	, _socket(copy._socket)
 {
 	std::cout << "User copy constructor called" << std::endl;
 	*this = copy;
@@ -35,16 +36,14 @@ User::~User(void)
 
 	this->channelsDrop();
 
-	close(_socket);
+	// close(_socket); //Warning: Do NOT uncomment!!!
 }
 
 User&	User::operator= (const User& copy)
 {
 	std::cout << "User assignment operator called" << std::endl;
 	if (this != &copy)
-	{
-		this->_server = copy._server;
-	}
+	{}
 	return (*this);
 }
 
@@ -72,25 +71,22 @@ void User::says(std::string message, Server *server)
     this->execute(messageList, server);
 }
 
-void	User::channelJoin(Server* server, std::string chaname)
+void	User::channelJoin(Channel& channel)
 {
-	server->userAddToChannel(*this, chaname);
+	_channels.insert(std::pair<std::string,Channel&>(channel.getName(), channel));
 }
 
-void	User::channelSubscribe(Channel* channel)
+void	User::channelPart(std::string chaname)
 {
-	_channels.push_back(channel);
-}
-
-void	User::channelPart(Server* server, Channel& channel)
-{
-	server->userRmFromChannel(*this, channel);
+	std::map<std::string, Channel&>::iterator search = _channels.find(chaname);
+	_channels.erase(search);
 }
 
 void	User::channelsDrop()
 {
-	for (std::list<Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
+	for (std::map<std::string, Channel&>::iterator it = _channels.begin(); it != _channels.end(); it++)
 	{
-		_server->userRmFromChannel(*this, **it);
+		it->second.userRemove(*this);
+		channelPart(it->first);
 	}
 }

@@ -16,9 +16,10 @@ class Channel;
 class User
 {
 private:
-	Server*				_server;
+	Server&				_server;
 	const int			_socket;
-	std::list<Channel*>	_channels;
+	std::map<std::string, Channel&> _channels;
+
 	std::map<std::string, void (User::*)(std::list<ServerMessage>, Server*)> _commandMap;
 	
 	std::string			_username;
@@ -29,9 +30,9 @@ private:
 
 	void	channelsDrop(); //Not API: only used internally
 
-	User(const User& copy);
 public:
-	User(Server* server, int userSocket);
+	User(Server& server, int userSocket);
+	User(const User& copy);
 	User& operator= (const User& copy);
 	virtual ~User(void);
 
@@ -48,9 +49,8 @@ public:
 	/* API */
     void    says(std::string message, Server *server);
 	
-	void	channelJoin(Server* server, std::string chaname);
-	void	channelSubscribe(Channel* channel); // Only called by server
-	void	channelPart(Server* server, Channel& channel);
+	void	channelJoin(Channel& channel);
+	void	channelPart(std::string chaname);
 	//TODO:	serverQuit
 
 

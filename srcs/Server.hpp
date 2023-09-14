@@ -48,8 +48,10 @@ typedef struct sockaddr_in sockaddr_in;
 class Server
 {
 private:
-    std::list<User*>        _users;
-    std::list<Channel*>     _channels;
+    // std::list<User*>        _users;
+    std::map<int, User>             _users;
+    // std::list<Channel*>     _channels;
+    std::map<std::string, Channel>  _channels;
     
     sockaddr_in             _address;
     socklen_t               _addr_size;
@@ -62,7 +64,7 @@ private:
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
 
-    Channel*                channelCreate(std::string chaname); // Not public. if public will create empty channel
+    void                channelCreate(std::string chaname); // Not public. if public will create empty channel
 
 public:
     Server(int port, std::string password);
@@ -78,12 +80,11 @@ public:
     socklen_t               getAddrSize() const   { return (_addr_size); };
     int                     getSocket() const     { return (_listenSocket); };
     User&	                getUserBySocket(int socket) {
-        for (std::list<User*>::iterator it = _users.begin(); it != _users.end(); it++)
-        {
-            if ((*it)->getSocket() == socket)
-                return (**it);
-        }
-        throw SocketUnableToFindUser();
+        std::map<int, User>::iterator search = _users.find(socket);
+        if (search != _users.end())
+            return search->second;
+        else
+            throw SocketUnableToFindUser();
     };
 
     void                    setAddress(sockaddr_in address) { _address = address; };
@@ -93,9 +94,9 @@ public:
     /*  API */
     void                    userCreate(int socket);
     void                    userQuit(const int sock);
-    void                    userAddToChannel(User& user, std::string chaname);
-    void                    userRmFromChannel(User& user, Channel& channel);
-    void                    channelDestroy(Channel& channel);
+    void                    userAddToChannel(User& user, std::string chaname); // Creates channel if non-existant
+    void                    userRmFromChannel(User& user, std::string chaname);
+    // void                    channelDestroy(Channel& channel); //TODO: do we need this func?
 };
 
 void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);

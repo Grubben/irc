@@ -10,27 +10,27 @@
 class Channel
 {
 private:
-	Server*				_server;
-	std::string			_name;
+	Server&					_server;
+	const std::string		_name;
 
-	std::list<User*>	_chanusers;
+	std::map<int,User&>		_chanusers;
 
 	void	usersDrop(); //Not API: only used internally
 public:
-	Channel(Server* server, std::string name);
+	Channel(Server& server, std::string name);
 	Channel(const Channel& copy);
 	Channel& operator=(const Channel& copy);
 	~Channel();
 
 	/*	Getters & Setters	*/
 	const std::string&	getName(void) const { return (_name); }
-	std::list<User*>&	getUsers(void) { return (_chanusers); }
+	// std::list<User*>&	getUsers(void) { return (_chanusers); }
 	
-	void 				setName(std::string name) { _name = name; }
+	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
 
 	/*	API	*/
 	void	userAdd(User& user);
-	void	userRemove(User& user);
+	int		userRemove(User& user);
 };
 
 Channel& getChannel(std::list<Channel*>& channels, std::string chaname);

@@ -41,11 +41,11 @@ Server::~Server()
 {
     close(_listenSocket);
 
-    // It has to be backwards
-    for (std::list<User*>::iterator it = _users.end(); it != _users.begin(); it--)
+    for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
     {
-        userQuit((*it)->getSocket());
+        close(it->first);
     }
+    _users.clear();
 }
 
 void Server::run()
@@ -136,55 +136,57 @@ void Server::dataReceived(int i)
 
 }
 
-void    Server::userQuit(const int sock)
+void    Server::userQuit(const int socket)
 {
-    std::cout << "Server is removing user with fd: " << sock << std::endl;
+    std::cout << "Server is removing user with fd: " << socket << std::endl;
 
-    User*   userdelete = &getUserBySocket(sock);
+    std::map<int, User>::iterator search = _users.find(socket);
 
-    _users.remove(userdelete);
-
-    delete userdelete;
+    close(search->first);
+    _users.erase(search);
 
     std::cout << "users size: " << _users.size() << std::endl;
 }
 
 void    Server::userCreate(int socket)
 {
-    _users.push_back( new User(this, socket) );
+    _users.insert(std::pair<int,User>(socket, User(*this, socket)));
 }
 
 void    Server::userAddToChannel(User& user, std::string chaname)
 {
-    Channel*    chan;
+    std::map<std::string,Channel>::iterator    chan;
     try
     {
-        chan = &getChannel(_channels, chaname);
+        chan = _channels.find(chaname);
     }
     catch(const std::exception& e)
     {
         std::cerr << e.what() << std::endl;
-        chan = channelCreate(chaname);
+        _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
     }
 
-    user.channelSubscribe(chan);
-    chan->userAdd(user);
+    user.channelJoin(chan->second);
+    chan->second.userAdd(user);
 }
 
-void    Server::userRmFromChannel(User& user, Channel& channel)
+void    Server::userRmFromChannel(User& user, std::string chaname)
 {
-    channel.userRemove(user);
+    user.channelPart(chaname);
+
+    std::map<std::string,Channel>::iterator search = _channels.find(chaname);
+    int nusers = search->second.userRemove(user);
+    if (nusers == 0)
+        _channels.erase(search);
 }
 
-Channel*    Server::channelCreate(std::string chaname)
+void    Server::channelCreate(std::string chaname)
 {
-    Channel*    chan = new Channel(this, chaname);
-    _channels.push_back( chan );
-    return chan;
+    _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
 }
 
-void    Server::channelDestroy(Channel& channel)
-{
-    _channels.remove(&channel);
-    delete &channel;
-}
+// void    Server::channelDestroy(Channel& channel)
+// {
+//     _channels.remove(&channel);
+//     delete &channel;
+// }
