@@ -44,20 +44,20 @@ void User::says(std::string message)
 
 void	User::channelJoin(Channel& channel)
 {
-	_channels.insert(std::pair<std::string,Channel&>(channel.getName(), channel));
+	_channels.insert(std::pair<std::string,Channel*>(channel.getName(), &channel));
 }
 
 void	User::channelPart(std::string chaname)
 {
-	std::map<std::string, Channel&>::iterator search = _channels.find(chaname);
+	std::map<std::string, Channel*>::iterator search = _channels.find(chaname);
 	_channels.erase(search);
 }
 
 void	User::channelsDrop()
 {
-	for (std::map<std::string, Channel&>::iterator it = _channels.begin(); it != _channels.end(); it++)
+	for (std::map<std::string, Channel*>::iterator it = _channels.begin(); it != _channels.end(); it++)
 	{
-		it->second.userRemove(*this);
+		(*it->second).userRemove(*this);
 		channelPart(it->first);
 	}
 }

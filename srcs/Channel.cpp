@@ -33,21 +33,21 @@ Channel&	Channel::operator= (const Channel& copy)
 
 void    Channel::userAdd(User& user)
 {
-    _chanusers.insert(std::pair<int,User&>(user.getSocket(), user));
+    _chanusers.insert(std::pair<int, User*>(user.getSocket(), &user));
 }
 
 int    Channel::userRemove(User& user)
 {
-    std::map<int,User&>::iterator search = _chanusers.find(user.getSocket());
+    std::map<int,User*>::iterator search = _chanusers.find(user.getSocket());
     _chanusers.erase(search);
 
     std::cout << "Channel with users: " << _chanusers.size() << std::endl;
 
-    return _chanusers.size();   
+    return _chanusers.size();
 }
 
-// void    Channel::usersDrop()
-// {
+void    Channel::usersDrop()
+{
     //TODO: Refactor!
     // while (_chanusers.size() > 0)
     // {
@@ -55,4 +55,4 @@ int    Channel::userRemove(User& user)
     //     useri->channelPart(_server, *this);
     //     _chanusers.pop_back();
     // }
-// }
+}

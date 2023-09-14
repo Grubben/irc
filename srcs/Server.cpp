@@ -47,7 +47,6 @@ Server::Server(int port, std::string password)
 	_commandMap["PART"] = &Server::part;
 	_commandMap["MODE"] = &Server::mode;
 	_commandMap["TOPIC"] = &Server::topic;
-
 }
 
 Server::~Server()

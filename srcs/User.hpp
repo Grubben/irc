@@ -18,7 +18,7 @@ class User
 private:
 	Server&				_server;
 	const int			_socket;
-	std::map<std::string, Channel&> _channels;
+	std::map<std::string, Channel*> _channels;
 	
 	std::string			_username;
 	std::string			_nickname;

@@ -13,7 +13,7 @@ private:
 	Server&					_server;
 	const std::string		_name;
 
-	std::map<int,User&>		_chanusers;
+	std::map<int, User*>	_chanusers;
 
 	void	usersDrop(); //Not API: only used internally
 public:
