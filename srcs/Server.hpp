@@ -57,13 +57,12 @@ private:
     std::map<int, User>             _users;
     std::map<std::string, Channel>  _channels;
     
-	std::map<std::string, void (Server::*)(std::list<ServerMessage>)> _commandMap;
+	std::map<std::string, void (Server::*)(ServerMessage)> _commandMap;
 
     addrinfo                _address;
     addrinfo                _hints;
     socklen_t               _addr_size;
     fd_set                  _masterFDs;
-    char                    _remoteIP[INET6_ADDRSTRLEN];
     int                     _fdMax;
     int                     _listenSocket;
     
@@ -75,7 +74,7 @@ private:
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
 
-    void                channelCreate(std::string chaname); // Not public. if public will create empty channel
+    void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
 
 public:
     Server(std::string port, std::string password);
@@ -105,19 +104,17 @@ public:
 
     /* Commands*/
 	void 	execute(std::list<ServerMessage> messageList);
-	void	cap(std::list<ServerMessage> messageList);
-	void	pass(std::list<ServerMessage> messageList);
-	void	nick(std::list<ServerMessage> messageList);
-	void	user(std::list<ServerMessage> messageList);
-	void	oper(std::list<ServerMessage> messageList);
-	void	quit(std::list<ServerMessage> messageList);
-	void	join(std::list<ServerMessage> messageList);
-	void	part(std::list<ServerMessage> messageList);
-	void	mode(std::list<ServerMessage> messageList);
-	void	topic(std::list<ServerMessage> messageList);
+	void	cap(ServerMessage serverMessage);
+	void	pass(ServerMessage serverMessage);
+	void	nick(ServerMessage serverMessage);
+	void	user(ServerMessage serverMessage);
+	void	oper(ServerMessage serverMessage);
+	void	quit(ServerMessage serverMessage);
+	void	join(ServerMessage serverMessage);
+	void	part(ServerMessage serverMessage);
+	void	mode(ServerMessage serverMessage);
+	void	topic(ServerMessage serverMessage);
 
 };
-
-void sendNumericResponse(int clientSocket, int numericCode, const std::string& message);
 
 #endif
