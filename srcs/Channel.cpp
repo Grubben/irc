@@ -5,7 +5,6 @@ Channel::Channel(Server& server, std::string name)
     , _name(name)
 {
 	std::cout << "Channel constructor called" << std::endl;
-    _chanusers.clear();
 }
 
 Channel::Channel(const Channel& copy)
@@ -26,7 +25,9 @@ Channel&	Channel::operator= (const Channel& copy)
 {
 	std::cout << "Channel assignment operator called" << std::endl;
 	if (this != &copy)
-	{}
+	{
+        _chanusers = copy._chanusers;
+    }
 	return (*this);
 }
 
@@ -45,8 +46,8 @@ int    Channel::userRemove(User& user)
     return _chanusers.size();   
 }
 
-void    Channel::usersDrop()
-{
+// void    Channel::usersDrop()
+// {
     //TODO: Refactor!
     // while (_chanusers.size() > 0)
     // {
@@ -54,16 +55,4 @@ void    Channel::usersDrop()
     //     useri->channelPart(_server, *this);
     //     _chanusers.pop_back();
     // }
-}
-
-Channel& getChannel(std::list<Channel*>& channels, std::string chaname)
-{
-    for (std::list<Channel*>::iterator it = channels.begin(); it != channels.end(); it++)
-    {
-        if ((*it)->getName() == chaname)
-        {
-            return *(*it);
-        }
-    }
-    throw ChannelUnableToFind();
-}
+// }

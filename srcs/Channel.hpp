@@ -33,6 +33,5 @@ public:
 	int		userRemove(User& user);
 };
 
-Channel& getChannel(std::list<Channel*>& channels, std::string chaname);
 
 #endif
