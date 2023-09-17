@@ -62,11 +62,16 @@ Server::Server(std::string port, std::string password)
 	_commandMap["USER"] = &Server::user;
 	_commandMap["OPER"] = &Server::oper;
 	_commandMap["QUIT"] = &Server::quit;
+	_commandMap["MODE"] = &Server::mode;
+    _commandMap["PRIVMSG"] = &Server::privmsg;
+    //Channel Operations
 	_commandMap["JOIN"] = &Server::join;
 	_commandMap["PART"] = &Server::part;
-	_commandMap["MODE"] = &Server::mode;
 	_commandMap["TOPIC"] = &Server::topic;
-    _commandMap["PRIVMSG"] = &Server::privmsg;
+    _commandMap["NAMES"] = &Server::names;
+    _commandMap["LIST"] = &Server::list;
+    _commandMap["INVITE"] = &Server::invite;
+    _commandMap["KICK"] = &Server::kick;
 }
 
 Server::~Server()

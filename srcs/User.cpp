@@ -41,6 +41,7 @@ User&	User::operator= (const User& copy)
 
 void User::says(std::string message, Server& server)
 {
+	message = trim(message, "\n");
     std::list<ServerMessage> messageList = ServerMessage::loadMessageIntoList(message, _socket);
     
     server.execute(messageList);

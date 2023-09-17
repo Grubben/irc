@@ -2,7 +2,7 @@
 
 std::string ltrim(std::string str)
 {
-    std::size_t found = str.find_first_not_of("\t");
+    std::size_t found = str.find_first_not_of(" \t");
 
     if (found == std::string::npos)
         return str;

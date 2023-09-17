@@ -117,11 +117,16 @@ public:
 	void	user(ServerMessage serverMessage);
 	void	oper(ServerMessage serverMessage);
 	void	quit(ServerMessage serverMessage);
+	void	mode(ServerMessage serverMessage);
+    void	privmsg(ServerMessage serverMessage);
+    // Channel Operations
 	void	join(ServerMessage serverMessage);
 	void	part(ServerMessage serverMessage);
-	void	mode(ServerMessage serverMessage);
 	void	topic(ServerMessage serverMessage);
-    void	privmsg(ServerMessage serverMessage);
+    void    names(ServerMessage serverMessage);
+    void    list(ServerMessage serverMessage);
+    void    invite(ServerMessage serverMessage);
+    void    kick(ServerMessage serverMessage);
 
 };
 

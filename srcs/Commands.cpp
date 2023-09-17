@@ -7,6 +7,7 @@ void Server::execute(std::list<ServerMessage> messageList)
     for (; it != messageList.end() && _stop == false; it++)
 	{
 		std::string command = it->getCommand();
+        std::cout << "Received command: " << command << std::endl;
 		if (_commandMap.find(command) != _commandMap.end())
 		{
 			(this->*_commandMap[command])(*it);
@@ -227,9 +228,16 @@ void Server::quit(ServerMessage serverMessage)
     //  or maybe remove users from channels and remove user from map memory
 }
 
+void Server::mode(ServerMessage serverMessage)
+{
+    std::cout << "mode command" << std::endl;
+}
+
+/*  CHANNEL OPERATIONS  */
 void Server::join(ServerMessage serverMessage)
 {
     std::cout << "join command" << std::endl;
+    serverMessage.outputPrompt();
 }
 
 void Server::part(ServerMessage serverMessage)
@@ -237,13 +245,28 @@ void Server::part(ServerMessage serverMessage)
     std::cout << "part command" << std::endl;
 }
 
-void Server::mode(ServerMessage serverMessage)
-{
-    std::cout << "mode command" << std::endl;
-}
-
 void Server::topic(ServerMessage serverMessage)
 {
     std::cout << "topic command" << std::endl;
+}
+
+void Server::names(ServerMessage serverMessage)
+{
+    std::cout << "name command" << std::endl;
+}
+
+void Server::list(ServerMessage serverMessage)
+{
+    std::cout << "list command" << std::endl;
+}
+
+void Server::invite(ServerMessage serverMessage)
+{
+    std::cout << "invite command" << std::endl;
+}
+
+void Server::kick(ServerMessage serverMessage)
+{
+    std::cout << "kick command" << std::endl;
 }
 
