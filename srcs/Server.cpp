@@ -145,7 +145,7 @@ void Server::acceptConnection(int& fdMax)
     if (newUserSocket > fdMax)
         fdMax = newUserSocket;
     userCreate(newUserSocket);
-    
+
     std::string passMsg = "This server requires a password. Please type /PASS <password> in order to try to log in.\r\n";
     send(newUserSocket, passMsg.c_str(), passMsg.length(), 0);
 }
@@ -178,6 +178,19 @@ void Server::dataReceived(int i)
             user.addBuffer(toSendMessage);
     }
 
+}
+
+int Server::sendMsg(int socket, std::string msg)
+{
+    long int n = 0;
+
+    while (n < msg.size())
+    {
+        n += send(socket, msg.c_str() + n, msg.size() - n, 0);
+        if (n == -1)
+            return -1;
+    }
+    return 0;
 }
 
 void    Server::userQuit(const int socket)
@@ -224,9 +237,10 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
     if (search == _channels.end())
         return ;
     int nusers = search->second.userRemove(user);
+    // std::cout << nusers << " users left in channel: " << chaname << std::endl;
     if (nusers == 0)
     {
-        std::cout << "erasing " << chaname << std::endl;
+        // std::cout << "erasing " << chaname << std::endl;
         _channels.erase(search);
     }
 }

@@ -238,7 +238,23 @@ void Server::join(ServerMessage serverMessage)
 {
     std::cout << "join command" << std::endl;
     User&   joiner = getUserBySocket(serverMessage.getSocket());
-    userAddToChannel(joiner, serverMessage.getParams()[0]);
+    const std::string chaname = trim(serverMessage.getParams()[0]);
+    
+
+    userAddToChannel(joiner, chaname);
+    
+    std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname;
+    std::cout << "Sending message: " << msg << std::endl;
+    sendMsg(serverMessage.getSocket(), msg);
+
+    Channel& channel = _channels.find(chaname)->second;
+    
+    msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic();
+    std::cout << msg << std::endl;
+
+    // std::cout << "Sending message: " << msg << std::endl;
+    sendMsg(serverMessage.getSocket(), msg);
+    // std::cout << "hi" << std::endl;
 }
 
 void Server::part(ServerMessage serverMessage)

@@ -14,7 +14,8 @@ void    sighandler(int signum)
 
 int main(int argc, char **argv)
 {
-    std::cout << std::unitbuf;
+    // std::cout << std::unitbuf;
+
     
     try
     {

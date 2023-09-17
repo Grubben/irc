@@ -12,6 +12,7 @@ class Channel
 private:
 	Server&					_server;
 	const std::string		_name;
+	std::string				_topic;
 
 	std::map<int, User*>	_chanusers;
 
@@ -27,6 +28,7 @@ public:
 	// std::list<User*>&	getUsers(void) { return (_chanusers); }
 	
 	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
+	const std::string	getTopic() const { return _topic; }
 
 	/*	API	*/
 	void	userAdd(User& user);
