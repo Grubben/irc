@@ -6,6 +6,8 @@ User::User() : _socket(-1)
 
 User::User(int userSocket): _socket(userSocket)
 {
+	_username = "";
+	_nickname = "";
     _isLoggedIn = false;
     _isOperator = false;
 }

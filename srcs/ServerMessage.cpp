@@ -15,9 +15,12 @@ ServerMessage::ServerMessage(std::vector<std::string> commandVector, int socket)
 void ServerMessage::outputPrompt()
 {
     std::cout << "command: " << _command << std::endl;
-    std::cout << "params: " << std::endl;
-    for (int i = 0; i < static_cast<int>(_params.size()); i++)
+    std::cout << "params: ";
+    int i = 0;
+    for ( ; i < static_cast<int>(_params.size()); i++)
         std::cout << "[" << i << "]" << " = " << _params[i] << std::endl;
+    if (i == 0)
+        std::cout << "none" << std::endl;
 }
 
 ServerMessage::~ServerMessage()

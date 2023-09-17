@@ -73,6 +73,8 @@ Server::~Server()
 {
     close(_listenSocket);
 
+    std::cout << "Closing all sockets" << std::endl;
+
     for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         close(it->first);
@@ -177,10 +179,10 @@ void Server::dataReceived(int i)
 
 void    Server::userQuit(const int socket)
 {
-    std::cout << "Server is removing user with fd: " << socket << std::endl;
-
     std::map<int, User>::iterator search = _users.find(socket);
-
+    if (search == _users.end())
+        return ;
+    std::cout << "Server is removing user with fd: " << socket << std::endl;
     close(search->first);
     _users.erase(search);
 
