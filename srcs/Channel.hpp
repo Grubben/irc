@@ -25,7 +25,14 @@ public:
 
 	/*	Getters & Setters	*/
 	const std::string&	getName(void) const { return (_name); }
-	// std::list<User*>&	getUsers(void) { return (_chanusers); }
+	std::string	getUsers(void) {
+		std::string users = "";
+		for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
+		{
+			users += " " + it->second->getNickname();
+		}
+		return users;
+	}
 	
 	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
 	const std::string	getTopic() const { return _topic; }
