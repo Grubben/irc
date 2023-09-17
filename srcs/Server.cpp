@@ -225,7 +225,10 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
         return ;
     int nusers = search->second.userRemove(user);
     if (nusers == 0)
+    {
+        std::cout << "erasing " << chaname << std::endl;
         _channels.erase(search);
+    }
 }
 
 void    Server::channelCreate(std::string chaname)

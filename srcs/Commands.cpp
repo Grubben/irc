@@ -237,12 +237,16 @@ void Server::mode(ServerMessage serverMessage)
 void Server::join(ServerMessage serverMessage)
 {
     std::cout << "join command" << std::endl;
-    serverMessage.outputPrompt();
+    User&   joiner = getUserBySocket(serverMessage.getSocket());
+    userAddToChannel(joiner, serverMessage.getParams()[0]);
 }
 
 void Server::part(ServerMessage serverMessage)
 {
     std::cout << "part command" << std::endl;
+    serverMessage.outputPrompt();
+    User&   parter = getUserBySocket(serverMessage.getSocket());
+    userRmFromChannel(parter, serverMessage.getParams()[0]);
 }
 
 void Server::topic(ServerMessage serverMessage)
