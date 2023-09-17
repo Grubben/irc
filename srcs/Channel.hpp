@@ -23,8 +23,8 @@ public:
 	~Channel();
 
 	/*	Getters & Setters	*/
-	const std::string&	getName(void) const { return (_name); }
-	// std::list<User*>&	getUsers(void) { return (_chanusers); }
+	const std::string&				getName(void) const { return (_name); };
+	std::map<int, User*>&			getUsers(void) { return (_chanusers); };
 	
 	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
 

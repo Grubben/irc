@@ -73,6 +73,8 @@ Server::~Server()
 {
     close(_listenSocket);
 
+    std::cout << "Closing all sockets" << std::endl;
+
     for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
     {
         close(it->first);
@@ -141,7 +143,7 @@ void Server::acceptConnection(int& fdMax)
         fdMax = newUserSocket;
     userCreate(newUserSocket);
     
-    std::string passMsg = "This server requires a password. Please type /PASS <password> in order to try to log in.\r\n";
+    std::string passMsg = ":This server requires a password. Please type /PASS <password> in order to try to log in.\r\n";
     send(newUserSocket, passMsg.c_str(), passMsg.length(), 0);
 }
 
@@ -177,10 +179,10 @@ void Server::dataReceived(int i)
 
 void    Server::userQuit(const int socket)
 {
-    std::cout << "Server is removing user with fd: " << socket << std::endl;
-
     std::map<int, User>::iterator search = _users.find(socket);
-
+    if (search == _users.end())
+        return ;
+    std::cout << "Server is removing user with fd: " << socket << std::endl;
     close(search->first);
     _users.erase(search);
 

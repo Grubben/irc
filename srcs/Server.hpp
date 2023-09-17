@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include "Colors.hpp"
+
 #include "Exceptions.hpp"
 #include "User.hpp"
 #include "Channel.hpp"
@@ -111,7 +113,10 @@ public:
 
     /* Commands*/
 	void 	execute(std::list<ServerMessage> messageList);
-	void	cap(ServerMessage serverMessage);
+    void    sendErrorMessage(int socket, std::string error, std::string extraMessage, bool toStop);
+    void    sendSuccessMessage(int socket, std::string numeric, std::string extraMessage);
+	
+    void	cap(ServerMessage serverMessage);
 	void	pass(ServerMessage serverMessage);
 	void	nick(ServerMessage serverMessage);
 	void	user(ServerMessage serverMessage);
