@@ -6,28 +6,28 @@ User::User() : _socket(-1)
 
 User::User(int userSocket): _socket(userSocket)
 {
-	std::cout << "User constructor called" << std::endl;
     _isLoggedIn = false;
     _isOperator = false;
 }
 
 User::User(const User& copy):_socket(copy._socket)
 {
-	std::cout << "User copy constructor called" << std::endl;
 	*this = copy;
 }
 
 User::~User(void)
 {
-	std::cout << "User destructor called" << std::endl;
-
 	// close(_socket); //Warning: Do NOT uncomment!!!
 	// this->channelsDrop();
+
+	_isOperator = false;
+	_isLoggedIn = false;
+	// do these values automatically reset when the object is destroyed?
+	//  Or does map keep it in the key: socketfd ??
 }
 
 User&	User::operator= (const User& copy)
 {
-	std::cout << "User assignment operator called" << std::endl;
 	if (this != &copy)
 	{
 		_userChannels = copy._userChannels;

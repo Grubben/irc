@@ -42,8 +42,14 @@ public:
 	const std::string&	getNickname() const 		{ return _nickname; }
 	const std::string&	getUsername() const 		{ return _username; }
 	const std::string&	getBuffer() const 			{ return _buffer; }
+	bool				isLoggedIn() const 			{ return _isLoggedIn; }
+	bool				isOperator() const 			{ return _isOperator; }
 
+	void 				setIsLoggedIn(bool isLoggedIn) { _isLoggedIn = isLoggedIn; }
+	void 				setIsOperator(bool isOperator) { _isOperator = isOperator; }
 	std::string			setbuffer(std::string toChange) {return toChange;};
+
+
 	
 	void	addBuffer(std::string msg)
 	{

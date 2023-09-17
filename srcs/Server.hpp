@@ -36,12 +36,13 @@
 extern bool g_isRunning;
 
 #define BACKLOG 10
-#define ACCEPTED_CHARS_NAME "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-"
-#define ACCEPTED_CHARS_PASS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-_+={}[]|\\:;\"\'<>,.?/"
+#define ACCEPTED_CHARS_NAME "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789[]\\`_^{|}-\0"
+#define ACCEPTED_CHARS_PASS "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`~!@#$%^&*()-_+={}[]|\\:;\"\'<>,.?/\0"
 
 
 #define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
 #define SERVER_NAME "ONossoIRC" // por mudar
+#define OPERATOR_PASSWORD "1234"
 
 // NOVO: retirar o que não é necessário e mudar valores
 // #define MAX_USERS 10
@@ -120,6 +121,7 @@ public:
 	void	part(ServerMessage serverMessage);
 	void	mode(ServerMessage serverMessage);
 	void	topic(ServerMessage serverMessage);
+    void	privmsg(ServerMessage serverMessage);
 
 };
 
