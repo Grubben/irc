@@ -13,8 +13,11 @@
 #define ERR_NOSUCHNICK(nickname)                std::string(":" SERVER_NAME " 401 " + nickname + " :No such nickname\r\n")
 #define ERR_NOSUCHNICKCHAN(sender, receiver)    std::string(":" SERVER_NAME " 401 " + sender + " " + receiver + " :Unexistent Nickname/Channel name\r\n")
 
-#define RPL_WELCOME(nickname)                   std::string(":" SERVER_NAME " 001 " + nickname + " :Welcome to the Internet Relay Network, " + nickname + "\r\n")
+#define RPL_WELCOME(nickname)                   std::string(":" SERVER_NAME " 001 " + nickname + " :Welcome to the <inserir nome> IRC Network, " + nickname + "\r\n")
 #define RPL_YOUREOPER                           std::string(":" SERVER_NAME " 381 :You are now an IRC operator\r\n")
+
+// If we do the bonus, implement this: https://ircv3.net/specs/extensions/bot-mode
+#define RPL_WHOISBOT(nickname, bots_name)       std::string(":" SERVER_NAME " 335 " + nickname + " " + bots_name + " :is a bot\r\n")
 
 #define PRIVMSG(sender, receiver, message)      std::string(":" + sender + "!" + sender + "@" + SERVER_NAME + " PRIVMSG " + receiver + " :" + message + "\r\n")
 

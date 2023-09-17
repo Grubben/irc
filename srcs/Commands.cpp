@@ -25,6 +25,9 @@ void Server::cap(ServerMessage serverMessage)
     // The server does not provide capability negotiation I THINK
     //  OR maybe this is needed to do the file transfer, need to check
     // https://ircv3.net/specs/extensions/capability-negotiation.html
+
+    // Caps: filetransfer (https://ircv3.net/specs/extensions/file-transfer-3.2.html)
+
 }
 
 void Server::sendErrorMessage(int socket, std::string error, std::string extraMessage, bool toStop)
@@ -70,7 +73,6 @@ void Server::pass(ServerMessage serverMessage)
     if (serverMessage.getParams()[0] != _password)
     {
         sendErrorMessage(user.getSocket(), ERR_PASSWDMISMATCH, "", true);
-        this->userQuit(user.getSocket());
         return;
     }
 
@@ -99,7 +101,6 @@ void Server::nick(ServerMessage serverMessage)
     if (serverMessage.getParams().empty())
     {
         sendErrorMessage(user.getSocket(), ERR_NONICKNAMEGIVEN, "", true);
-        this->userQuit(serverMessage.getSocket());
         return;
     }
 
@@ -226,10 +227,7 @@ void Server::oper(ServerMessage serverMessage)
     // Check input
     if (serverMessage.getParams().size() != 2)
     {
-        send(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("OPER").c_str(), ERR_NEEDMOREPARAMS("OPER").size(), 0);
-        std::string usage("OPER <username> <password>");
-        send(serverMessage.getSocket(), usage.c_str(), usage.size(), 0);
-        _stop = true;
+        sendErrorMessage(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("OPER"), "Usage: /OPER <username> <password>", false);
         return;
     }
 
@@ -239,69 +237,65 @@ void Server::oper(ServerMessage serverMessage)
     {
         if (it->second.getUsername() == serverMessage.getParams()[0])
         {
-            if (it->second.isOperator() == false && serverMessage.getParams()[1] == _password)
+            if (it->second.isOperator() == false && serverMessage.getParams()[1] == OPERATOR_PASSWORD)
             {
                     // bug: not fully displayed
                     // display mode message
                 it->second.setIsOperator(true);
-                send(it->second.isOperator(), RPL_YOUREOPER.c_str(), RPL_YOUREOPER.size(), 0);
+                sendSuccessMessage(serverMessage.getSocket(), RPL_YOUREOPER, "");
                 return;
             }
             else if (it->second.isOperator() == true)
             {
-                std::string msg(_users[serverMessage.getSocket()].getUsername() + "already is an operator.\r\n");
-                send(serverMessage.getSocket(), msg.c_str(), msg.size(), 0);
+                sendErrorMessage(serverMessage.getSocket(), ERR_ALREADYREGISTRED, "", false);
                 return;
             }
             else
             {
-                send(serverMessage.getSocket(), ERR_PASSWDMISMATCH.c_str(), ERR_PASSWDMISMATCH.size(), 0);
-                _stop = true;
+                sendErrorMessage(serverMessage.getSocket(), ERR_PASSWDMISMATCH, "", false);
                 return;
             }
         }
     }
 
     // If not found
-    std::string msg("Couldn't find " + serverMessage.getParams()[0] + "\r\n");
-    send(serverMessage.getSocket(), msg.c_str(), msg.size(), 0);
+    sendErrorMessage(serverMessage.getSocket(), ERR_NOSUCHNICK(serverMessage.getParams()[0]), "", false);
 }
 
 void Server::quit(ServerMessage serverMessage)
 {
-    if (serverMessage.getParams()[0].size() > 0)
+    // Remove user from all channels
+    std::map<std::string, Channel>::iterator chan = _channels.begin();
+    for (; chan != _channels.end(); chan++)
     {
-
-        _stop = true;
-        return;
+        chan->second.userRemove(_users[serverMessage.getSocket()]);
     }
-    //  or maybe remove users from channels and remove user from map memory
 }
 
 void Server::join(ServerMessage serverMessage)
 {
 
-    // Server join is REQUIRED to have first char of channel name to be '#' or '&'!
-
-    std::cout << "join command" << std::endl;
-
-    // Check input
-    if (serverMessage.getParams().size() < 1)
-    {
-        send(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("JOIN").c_str(), ERR_NEEDMOREPARAMS("JOIN").size(), 0);
-        std::string usage("JOIN <channel name>");
-        send(serverMessage.getSocket(), usage.c_str(), usage.size(), 0);
-        _stop = true;
-        return;
-    }
-
-    // Check if channel exists, if not create it and add user to it
-    userAddToChannel(_users[serverMessage.getSocket()], serverMessage.getParams()[0]);
-    std::string success(":" + _users[serverMessage.getSocket()].getNickname() + "!" + _users[serverMessage.getSocket()].getUsername() + "@" + SERVER_NAME + " JOIN " + serverMessage.getParams()[0] + "\r\n");
-    send(serverMessage.getSocket(), success.c_str(), success.size(), 0);
-
-    // Send names list TODO
-    // std::map<std::string, Channel>::iterator it = _channels.begin();
+    //// Server join is REQUIRED to have first char of channel name to be '#' or '&'!
+//
+    //std::cout << "join command" << std::endl;
+//
+    //// Check input
+    //if (serverMessage.getParams().size() < 1)
+    //{
+    //    send(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("JOIN").c_str(), ERR_NEEDMOREPARAMS("JOIN").size(), 0);
+    //    std::string usage("JOIN <channel name>");
+    //    send(serverMessage.getSocket(), usage.c_str(), usage.size(), 0);
+    //    _stop = true;
+    //    return;
+    //}
+//
+    //// Check if channel exists, if not create it and add user to it
+    //userAddToChannel(_users[serverMessage.getSocket()], serverMessage.getParams()[0]);
+    //std::string success(":" + _users[serverMessage.getSocket()].getNickname() + "!" + _users[serverMessage.getSocket()].getUsername() + "@" + SERVER_NAME + " JOIN " + serverMessage.getParams()[0] + "\r\n");
+    //send(serverMessage.getSocket(), success.c_str(), success.size(), 0);
+//
+    //// Send names list TODO
+    //// std::map<std::string, Channel>::iterator it = _channels.begin();
 }
 
 void Server::part(ServerMessage serverMessage)
