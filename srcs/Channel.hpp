@@ -45,7 +45,7 @@ public:
 	void	userAdd(User& user);
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
-	void	addInvited(std::string username);
+	void	addInvited(std::string username) { _invited.push_back(username); }
 };
 
 

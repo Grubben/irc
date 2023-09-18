@@ -97,6 +97,7 @@ void Server::pass(ServerMessage serverMessage)
 
 void Server::nick(ServerMessage serverMessage)
 {
+    //TODO: send numeric macro to change nick
     User& user = _users[serverMessage.getSocket()];
 
     if (user.isLoggedIn())
@@ -172,6 +173,7 @@ void Server::user(ServerMessage serverMessage)
 
 void Server::privmsg(ServerMessage serverMessage)
 {
+    //TODO: not working!!
     // Are we supposed to allow <me> to send to <me>? Ex: dadoming to dadoming ?
 
     // Check input
