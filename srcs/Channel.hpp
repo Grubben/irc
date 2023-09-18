@@ -12,7 +12,7 @@ class Channel
 private:
 	Server&					_server;
 	const std::string		_name;
-	// std::string				_topic;
+	std::string				_topic;
 
 	std::map<int, User*>	_chanusers;
 
@@ -30,8 +30,6 @@ public:
 		std::string users = "";
 		for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
 		{
-			std::cout << (*it->second).getNickname() << std::endl;
-			std::cout << it->second->getNickname() << std::endl;
 			std::string tmp = it->second->getNickname();
 			users += " " + tmp;
 		}
@@ -39,7 +37,7 @@ public:
 	}
 	
 	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
-	// std::string	getTopic() const { return _topic; }
+	const std::string&	getTopic() const { return _topic; }
 
 	/*	API	*/
 	void	userAdd(User& user);
