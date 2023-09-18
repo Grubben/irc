@@ -38,6 +38,7 @@ public:
 	
 	// void 				setName(std::string name) { _name = name; } //Warning: should delete. Name cannot be changed
 	const std::string&	getTopic() const { return _topic; }
+	void				setTopic(const std::string& newtopic) { _topic = newtopic; }
 
 	/*	API	*/
 	void	userAdd(User& user);

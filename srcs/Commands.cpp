@@ -369,6 +369,23 @@ void Server::part(ServerMessage serverMessage)
 void Server::topic(ServerMessage serverMessage)
 {
     std::cout << "topic command" << std::endl;
+
+    const inst socket = serverMessage.getSocket();
+    User&   user = getUserBySocket(socket);
+    const std::string chaname = serverMessage.getParams()[0];
+
+    if (serverMessage.getParams().size() == 1)
+    {
+        const std::string&    topic = _channels.find(chaname)->second.getTopic()
+        if (topic == "")
+            sendMsg(socket, user.getNickname() + " " + chaname + ":No topic is set" + "\r\n"); // 331
+        else
+            sendMsg(socket, user.getNickname() + " " + chaname + ":" + topic + "\r\\n");
+    }
+    //TODO: check permissions
+    //TODO: check serverMessage.getParams()[1][0] is a ":"
+    const std::string newtopic = serverMessage.getParams()[1].substr(1);
+    _channels.find(chaname)->second.setTopic(newtopic);
 }
 
 void Server::names(ServerMessage serverMessage)
