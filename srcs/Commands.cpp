@@ -376,8 +376,6 @@ void Server::part(ServerMessage serverMessage)
             userRmFromChannel(parter, *it);
         }
     }
-
-    // userRmFromChannel(parter, serverMessage.getParams()[0]);
 }
 
 void Server::topic(ServerMessage serverMessage)
@@ -405,6 +403,28 @@ void Server::topic(ServerMessage serverMessage)
 void Server::names(ServerMessage serverMessage)
 {
     std::cout << "name command" << std::endl;
+
+    const int socket = serverMessage.getSocket();
+    User&   user = getUserBySocket(socket);
+
+    std::vector<std::string> chanames = split(serverMessage.getParams()[0], ",");
+
+    for (std::vector<std::string>::iterator it = chanames.begin(); it != chanames.end(); it++)
+    {
+        std::string msg;
+        if (_channels.find(*it) != _channels.end())
+        {
+            // 353
+            //TODO: apply correct symbol
+            msg = user.getNickname() + " = " + *it + " :" + _channels.find(*it)->second.getUsersString();
+            std::cout << msg << std::endl;
+            sendAll(serverMessage.getSocket(), msg + "\r\n");
+        }
+        // 366
+        msg = user.getNickname() + " " + *it + " :End of /NAMES list";
+        std::cout << msg << std::endl;
+        sendAll(serverMessage.getSocket(), msg + "\r\n");
+    }
 }
 
 void Server::list(ServerMessage serverMessage)
@@ -415,10 +435,34 @@ void Server::list(ServerMessage serverMessage)
 void Server::invite(ServerMessage serverMessage)
 {
     std::cout << "invite command" << std::endl;
+    //TODO: check permissions
+
+    const int socket = serverMessage.getSocket();
+    User&   user = getUserBySocket(socket);
+
+    const std::string invited = serverMessage.getParams()[0];
+    const std::string chaname = serverMessage.getParams()[1];
+
+    //Throw 403, 442 if error
+
+    sendAll(serverMessage.getSocket(), user.getNickname() + " " + invited + " " + chaname + "\r\n"); // 341
+
 }
 
 void Server::kick(ServerMessage serverMessage)
 {
     std::cout << "kick command" << std::endl;
+
+    const std::string chaname = serverMessage.getParams()[0];
+    const std::string kickedName = serverMessage.getParams()[1];
+
+    for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
+    {
+        if (it->second.getNickname() == kickedName)
+        {
+            userRmFromChannel(it->second, chaname);
+            break;
+        }
+    }
 }
 
