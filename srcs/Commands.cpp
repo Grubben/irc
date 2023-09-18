@@ -29,6 +29,12 @@ void Server::cap(ServerMessage serverMessage)
 
     // Caps: filetransfer (https://ircv3.net/specs/extensions/file-transfer-3.2.html)
 
+    // CAP LS 302
+    // CAP LIST
+    // CAP REQ filetransfer
+    // CAP END
+
+
 }
 
 void Server::sendErrorMessage(int socket, std::string error, std::string extraMessage, bool toStop)
@@ -177,6 +183,7 @@ void Server::privmsg(ServerMessage serverMessage)
 
     std::vector<std::string> receivers = split(serverMessage.getParams()[0], ",");
     std::string message = serverMessage.getParams()[1];
+    User& sender = _users[serverMessage.getSocket()];
 
     // Swap vector to list for easier removal
     std::list<std::string> receiversList(receivers.begin(), receivers.end());
@@ -190,7 +197,10 @@ void Server::privmsg(ServerMessage serverMessage)
             std::map<int, User*>::iterator user = chan->second.getUsers().begin();
             for (; user != chan->second.getUsers().end(); user++)
             {
-                sendSuccessMessage(user->first, PRIVMSG(_users[serverMessage.getSocket()].getNickname(), chan->first, message), "");
+                if (message[0] == ':')
+                    message.erase(0, 1);
+                if (sender.getSocket() != user->first)
+                    sendSuccessMessage(user->first, PRIVMSG(_users[serverMessage.getSocket()].getNickname(), chan->first, message), "");
             }
         }
         else
@@ -201,7 +211,11 @@ void Server::privmsg(ServerMessage serverMessage)
             {
                 if (user->second.getNickname() == *it)
                 {
-                    sendSuccessMessage(user->first, PRIVMSG(_users[serverMessage.getSocket()].getNickname(), user->second.getNickname(), message), "");
+                    if (message[0] == ':')
+                    {
+                        message.erase(0, 1);
+                        sendSuccessMessage(user->first, PRIVMSG(sender.getNickname(), user->second.getNickname(), message), "");
+                    }
                     break;
                 }
             }
