@@ -158,10 +158,10 @@ void Server::dataReceived(int i)
     {
         if (len == 0)
             std::cout << "Client has left the network. fd: " << i << std::endl;
-        else
-        {
-            perror("recv");
-        }
+        // else
+        // {
+        //     perror("recv");
+        // }
         message[len] = 0;
         close(i);
         FD_CLR(i, &_masterFDs);

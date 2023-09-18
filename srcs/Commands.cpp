@@ -445,6 +445,8 @@ void Server::invite(ServerMessage serverMessage)
 
     //Throw 403, 442 if error
 
+    _channels.find(chaname)->second.addInvited(invited);
+
     sendAll(serverMessage.getSocket(), user.getNickname() + " " + invited + " " + chaname + "\r\n"); // 341
 
 }

@@ -15,6 +15,7 @@ private:
 	std::string				_topic;
 
 	std::map<int, User*>	_chanusers;
+	std::vector<std::string>	_invited;
 
 	void	usersDrop(); //Not API: only used internally
 public:
@@ -44,6 +45,7 @@ public:
 	void	userAdd(User& user);
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
+	void	addInvited(std::string username);
 };
 
 
