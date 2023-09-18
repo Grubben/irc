@@ -245,6 +245,12 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
     }
 }
 
+bool    Server::channelExists(std::string chaname)
+{
+    std::map<std::string, Channel>::iterator search = _channels.find(chaname);
+    return search != _channels.end();
+}
+
 void    Server::channelCreate(std::string chaname)
 {
     _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));

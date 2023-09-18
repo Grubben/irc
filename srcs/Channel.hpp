@@ -42,6 +42,7 @@ public:
 	/*	API	*/
 	void	userAdd(User& user);
 	int		userRemove(User& user);
+	bool	isUserInChannel(User& user);
 };
 
 

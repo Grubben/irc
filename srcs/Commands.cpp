@@ -343,9 +343,27 @@ void Server::join(ServerMessage serverMessage)
 void Server::part(ServerMessage serverMessage)
 {
     std::cout << "part command" << std::endl;
-    serverMessage.outputPrompt();
-    User&   parter = getUserBySocket(serverMessage.getSocket());
-    userRmFromChannel(parter, serverMessage.getParams()[0]);
+
+    const int socket = serverMessage.getSocket();
+    User&   parter = getUserBySocket(socket);
+
+    std::vector<std::string> channelsLeave = split(serverMessage.getParams()[0], ",");
+
+    for (std::vector<std::string>::iterator it = channelsLeave.begin(); it != channelsLeave.end(); it++ )
+    {
+        if (! channelExists(*it))
+            sendMsg(socket, parter.getNickname() + " " + *it + " :No such channel\r\n"); // 403
+        else if (! _channels.find(*it)->second.isUserInChannel(parter))
+            sendMsg(socket, parter.getNickname() + " " + *it + ":You're not on that channel\r\n"); // 442
+        else
+        {
+            //TODO: <reason> should be on each of these
+            sendMsg(socket, ":" + parter.getNickname() + " PART " + *it + "\r\n");
+            userRmFromChannel(parter, *it);
+        }
+    }
+
+    // userRmFromChannel(parter, serverMessage.getParams()[0]);
 }
 
 void Server::topic(ServerMessage serverMessage)

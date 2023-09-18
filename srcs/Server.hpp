@@ -108,6 +108,7 @@ public:
     void                    userAddToChannel(User& user, std::string chaname); // Creates channel if non-existant
     void                    userRmFromChannel(User& user, std::string chaname);
     // void                    channelDestroy(Channel& channel); //TODO: do we need this func?
+    bool                    channelExists(std::string chaname);
 
     /* Commands*/
 	void 	execute(std::list<ServerMessage> messageList);
