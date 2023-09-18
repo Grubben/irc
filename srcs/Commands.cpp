@@ -33,12 +33,12 @@ void Server::cap(ServerMessage serverMessage)
 
 void Server::sendErrorMessage(int socket, std::string error, std::string extraMessage, bool toStop)
 {
-    send(socket , error.c_str(), error.size(), 0);
+    sendAll(socket , error);
     std::cout << RED << "fd: " << socket << " -> " << error << RESET << std::endl;
     if (extraMessage != "")
     {
         extraMessage += "\r\n";
-        send(socket, extraMessage.c_str(), extraMessage.size(), 0);
+        sendAll(socket, extraMessage);
     }
     if (toStop)
         _stop = true;
@@ -46,10 +46,10 @@ void Server::sendErrorMessage(int socket, std::string error, std::string extraMe
 
 void Server::sendSuccessMessage(int socket, std::string numeric, std::string extraMessage)
 {
-    send(socket , numeric.c_str(), numeric.size(), 0);
+    sendAll(socket , numeric);
     std::cout << GREEN << "fd: " << socket << " -> " << numeric << RESET << std::endl;
     if (extraMessage != "")
-        send(socket, extraMessage.c_str(), extraMessage.size(), 0);
+        sendAll(socket, extraMessage);
 }
 
 void Server::pass(ServerMessage serverMessage)
@@ -289,9 +289,9 @@ void Server::join(ServerMessage serverMessage)
     //// Check input
     //if (serverMessage.getParams().size() < 1)
     //{
-    //    send(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("JOIN").c_str(), ERR_NEEDMOREPARAMS("JOIN").size(), 0);
+    //    sendAll(serverMessage.getSocket(), ERR_NEEDMOREPARAMS("JOIN").c_str(), ERR_NEEDMOREPARAMS("JOIN").size(), 0);
     //    std::string usage("JOIN <channel name>");
-    //    send(serverMessage.getSocket(), usage.c_str(), usage.size(), 0);
+    //    sendAll(serverMessage.getSocket(), usage.c_str(), usage.size(), 0);
     //    _stop = true;
     //    return;
     //}
@@ -299,7 +299,7 @@ void Server::join(ServerMessage serverMessage)
     //// Check if channel exists, if not create it and add user to it
     //userAddToChannel(_users[serverMessage.getSocket()], serverMessage.getParams()[0]);
     //std::string success(":" + _users[serverMessage.getSocket()].getNickname() + "!" + _users[serverMessage.getSocket()].getUsername() + "@" + SERVER_NAME + " JOIN " + serverMessage.getParams()[0] + "\r\n");
-    //send(serverMessage.getSocket(), success.c_str(), success.size(), 0);
+    //sendAll(serverMessage.getSocket(), success.c_str(), success.size(), 0);
 //
     //// Send names list TODO
     //// std::map<std::string, Channel>::iterator it = _channels.begin();
@@ -321,23 +321,23 @@ void Server::join(ServerMessage serverMessage)
     // JOIN message
     std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname;
     std::cout << msg << std::endl;
-    sendMsg(serverMessage.getSocket(), msg + "\r\n");
+    sendAll(serverMessage.getSocket(), msg + "\r\n");
 
     // 332
     msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic();
     std::cout << msg << std::endl;
-    sendMsg(serverMessage.getSocket(), msg + "\r\n");
+    sendAll(serverMessage.getSocket(), msg + "\r\n");
 
     // 353
     //TODO: apply correct symbol
     msg = joiner.getNickname() + " = " + chaname + " :" + channel.getUsersString();
     std::cout << msg << std::endl;
-    sendMsg(serverMessage.getSocket(), msg + "\r\n");
+    sendAll(serverMessage.getSocket(), msg + "\r\n");
 
     // 366
     msg = joiner.getNickname() + " " + chaname + " :End of /NAMES list";
     std::cout << msg << std::endl;
-    sendMsg(serverMessage.getSocket(), msg + "\r\n");
+    sendAll(serverMessage.getSocket(), msg + "\r\n");
 }
 
 void Server::part(ServerMessage serverMessage)
@@ -352,13 +352,13 @@ void Server::part(ServerMessage serverMessage)
     for (std::vector<std::string>::iterator it = channelsLeave.begin(); it != channelsLeave.end(); it++ )
     {
         if (! channelExists(*it))
-            sendMsg(socket, parter.getNickname() + " " + *it + " :No such channel\r\n"); // 403
+            sendAll(socket, parter.getNickname() + " " + *it + " :No such channel\r\n"); // 403
         else if (! _channels.find(*it)->second.isUserInChannel(parter))
-            sendMsg(socket, parter.getNickname() + " " + *it + ":You're not on that channel\r\n"); // 442
+            sendAll(socket, parter.getNickname() + " " + *it + ":You're not on that channel\r\n"); // 442
         else
         {
             //TODO: <reason> should be on each of these
-            sendMsg(socket, ":" + parter.getNickname() + " PART " + *it + "\r\n");
+            sendAll(socket, ":" + parter.getNickname() + " PART " + *it + "\r\n");
             userRmFromChannel(parter, *it);
         }
     }
@@ -370,17 +370,17 @@ void Server::topic(ServerMessage serverMessage)
 {
     std::cout << "topic command" << std::endl;
 
-    const inst socket = serverMessage.getSocket();
+    const int socket = serverMessage.getSocket();
     User&   user = getUserBySocket(socket);
     const std::string chaname = serverMessage.getParams()[0];
 
     if (serverMessage.getParams().size() == 1)
     {
-        const std::string&    topic = _channels.find(chaname)->second.getTopic()
+        const std::string&    topic = _channels.find(chaname)->second.getTopic();
         if (topic == "")
-            sendMsg(socket, user.getNickname() + " " + chaname + ":No topic is set" + "\r\n"); // 331
+            sendAll(socket, user.getNickname() + " " + chaname + ":No topic is set" + "\r\n"); // 331
         else
-            sendMsg(socket, user.getNickname() + " " + chaname + ":" + topic + "\r\\n");
+            sendAll(socket, user.getNickname() + " " + chaname + ":" + topic + "\r\\n");
     }
     //TODO: check permissions
     //TODO: check serverMessage.getParams()[1][0] is a ":"
