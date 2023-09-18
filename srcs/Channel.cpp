@@ -5,7 +5,8 @@ Channel::Channel(Server& server, std::string name)
     , _name(name)
 {
 	std::cout << "Channel constructor called" << std::endl;
-    _topic = "<Default Topic>";   
+    // _topic = "<Default Topic>";
+    _chanusers.clear();
 }
 
 Channel::Channel(const Channel& copy)
@@ -26,7 +27,7 @@ Channel&	Channel::operator= (const Channel& copy)
 	//std::cout << "Channel assignment operator called" << std::endl;
 	if (this != &copy)
 	{
-        _topic = copy._topic;
+        // _topic = copy._topic;
         _chanusers = copy._chanusers;
     }
 	return (*this);

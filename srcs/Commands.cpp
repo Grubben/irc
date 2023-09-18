@@ -307,13 +307,18 @@ void Server::join(ServerMessage serverMessage)
     serverMessage.outputPrompt();
 
     User&   joiner = getUserBySocket(serverMessage.getSocket());
-    const std::string chaname = serverMessage.getParams()[0];
-    Channel& channel = _channels.find(chaname)->second;
-    
-    std::cout << (int)chaname[6] << std::endl;
+    // if (joiner.isLoggedIn() == false)
+    //     return;
 
+    const std::string chaname = serverMessage.getParams()[0];
+    
     // Actually add
     userAddToChannel(joiner, chaname);
+    std::cout << (int)chaname[6] << std::endl;
+    
+    Channel& channel = _channels.find(chaname)->second;
+    
+
     
     // JOIN message
     std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname;
@@ -321,7 +326,7 @@ void Server::join(ServerMessage serverMessage)
     sendMsg(serverMessage.getSocket(), msg + "\r\n");
 
     // 332
-    msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic();
+    msg = joiner.getNickname() + " " + chaname + " :";// + channel.getTopic();
     // std::cout << msg;
     sendMsg(serverMessage.getSocket(), msg + "\r\n");
 
