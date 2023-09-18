@@ -7,6 +7,7 @@ void Server::execute(std::list<ServerMessage> messageList)
     for (; it != messageList.end() && _stop == false; it++)
 	{
 		std::string command = it->getCommand();
+        std::cout << "Received command: " << command << std::endl;
 		if (_commandMap.find(command) != _commandMap.end())
 		{
             it->outputPrompt();
@@ -272,6 +273,12 @@ void Server::quit(ServerMessage serverMessage)
     }
 }
 
+void Server::mode(ServerMessage serverMessage)
+{
+    std::cout << "mode command" << std::endl;
+}
+
+/*  CHANNEL OPERATIONS  */
 void Server::join(ServerMessage serverMessage)
 {
 
@@ -296,17 +303,66 @@ void Server::join(ServerMessage serverMessage)
 //
     //// Send names list TODO
     //// std::map<std::string, Channel>::iterator it = _channels.begin();
+    std::cout << "join command" << std::endl;
+    User&   joiner = getUserBySocket(serverMessage.getSocket());
+    const std::string chaname = trim(serverMessage.getParams()[0]);
+    Channel& channel = _channels.find(chaname)->second;
+    
+    // Actually add
+    userAddToChannel(joiner, chaname);
+    
+    // JOIN message
+    std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname + "\r\n";
+    std::cout << msg;
+    sendMsg(serverMessage.getSocket(), msg);
+
+    // 332
+    msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic() + "\r\n";
+    std::cout << msg;
+    sendMsg(serverMessage.getSocket(), msg);
+
+    // 353
+    //TODO: apply correct symbol
+    msg = joiner.getNickname() + " = " + chaname + " :" + channel.getUsers() + "\r\n";
+    std::cout << msg;
+    sendMsg(serverMessage.getSocket(), msg);
+
+    // 366
+    msg = joiner.getNickname() + " " + chaname + " :End of /NAMES list\r\n";
+    std::cout << msg;
+    sendMsg(serverMessage.getSocket(), msg);    
 }
 
 void Server::part(ServerMessage serverMessage)
 {
-}
-
-void Server::mode(ServerMessage serverMessage)
-{
+    std::cout << "part command" << std::endl;
+    serverMessage.outputPrompt();
+    User&   parter = getUserBySocket(serverMessage.getSocket());
+    userRmFromChannel(parter, serverMessage.getParams()[0]);
 }
 
 void Server::topic(ServerMessage serverMessage)
 {
+    std::cout << "topic command" << std::endl;
+}
+
+void Server::names(ServerMessage serverMessage)
+{
+    std::cout << "name command" << std::endl;
+}
+
+void Server::list(ServerMessage serverMessage)
+{
+    std::cout << "list command" << std::endl;
+}
+
+void Server::invite(ServerMessage serverMessage)
+{
+    std::cout << "invite command" << std::endl;
+}
+
+void Server::kick(ServerMessage serverMessage)
+{
+    std::cout << "kick command" << std::endl;
 }
 

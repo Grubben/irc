@@ -83,7 +83,7 @@ private:
     void                    dataReceived(int i);
     void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
 
-
+    int                     sendMsg(int socket, std::string msg);
 
 public:
     Server(std::string port, std::string password);
@@ -93,8 +93,6 @@ public:
     void                    run();
     
     std::string             getPassword() const   { return (_password); };
-    // std::list<User*>        getUsers() const      { return (_users); };
-    // std::list<Channel*>     getChannels() const   { return (_channels); };
     int                     getSocket() const     { return (_listenSocket); };
     User&	                getUserBySocket(int socket) {
         std::map<int, User>::iterator search = _users.find(socket);
@@ -122,11 +120,16 @@ public:
 	void	user(ServerMessage serverMessage);
 	void	oper(ServerMessage serverMessage);
 	void	quit(ServerMessage serverMessage);
+	void	mode(ServerMessage serverMessage);
+    void	privmsg(ServerMessage serverMessage);
+    // Channel Operations
 	void	join(ServerMessage serverMessage);
 	void	part(ServerMessage serverMessage);
-	void	mode(ServerMessage serverMessage);
 	void	topic(ServerMessage serverMessage);
-    void	privmsg(ServerMessage serverMessage);
+    void    names(ServerMessage serverMessage);
+    void    list(ServerMessage serverMessage);
+    void    invite(ServerMessage serverMessage);
+    void    kick(ServerMessage serverMessage);
 
 };
 

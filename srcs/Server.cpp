@@ -62,11 +62,16 @@ Server::Server(std::string port, std::string password)
 	_commandMap["USER"] = &Server::user;
 	_commandMap["OPER"] = &Server::oper;
 	_commandMap["QUIT"] = &Server::quit;
+	_commandMap["MODE"] = &Server::mode;
+    _commandMap["PRIVMSG"] = &Server::privmsg;
+    //Channel Operations
 	_commandMap["JOIN"] = &Server::join;
 	_commandMap["PART"] = &Server::part;
-	_commandMap["MODE"] = &Server::mode;
 	_commandMap["TOPIC"] = &Server::topic;
-    _commandMap["PRIVMSG"] = &Server::privmsg;
+    _commandMap["NAMES"] = &Server::names;
+    _commandMap["LIST"] = &Server::list;
+    _commandMap["INVITE"] = &Server::invite;
+    _commandMap["KICK"] = &Server::kick;
 }
 
 Server::~Server()
@@ -177,6 +182,19 @@ void Server::dataReceived(int i)
 
 }
 
+int Server::sendMsg(int socket, std::string msg)
+{
+    long int n = 0;
+
+    while (n < msg.size())
+    {
+        n += send(socket, msg.c_str() + n, msg.size() - n, 0);
+        if (n == -1)
+            return -1;
+    }
+    return 0;
+}
+
 void    Server::userQuit(const int socket)
 {
     std::map<int, User>::iterator search = _users.find(socket);
@@ -221,8 +239,12 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
     if (search == _channels.end())
         return ;
     int nusers = search->second.userRemove(user);
+    // std::cout << nusers << " users left in channel: " << chaname << std::endl;
     if (nusers == 0)
+    {
+        // std::cout << "erasing " << chaname << std::endl;
         _channels.erase(search);
+    }
 }
 
 void    Server::channelCreate(std::string chaname)
