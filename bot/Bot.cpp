@@ -53,8 +53,21 @@ int main(void)
     buffer[len] = 0;
     std::cout << buffer << std::endl;
 
-    std::string msgpriv("PRIVMSG davz Hello!\r\n");
-    sendAll(bot.getSocket(), msgpriv.c_str(), msgpriv.size(), 0);
+    std::string joinmsg("JOIN #BotChannel\r\n");
+    send(bot.getSocket(), joinmsg.c_str(), joinmsg.size(), 0);
+
+    while (1)
+    {
+        len = recv(bot.getSocket(), &buffer, sizeof(buffer) - 1, 0);
+        buffer[len] = 0;
+        std::cout << buffer << std::endl;
+    
+        if (strstr(buffer, "PING") != NULL)
+        {
+            std::string pong("PRIVMSG #BotChannel PONG\r\n");
+            send(bot.getSocket(), pong.c_str(), pong.size(), 0);
+        }
+    }
 
     return 0;
 }
