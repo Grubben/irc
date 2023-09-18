@@ -25,7 +25,8 @@ public:
 
 	/*	Getters & Setters	*/
 	const std::string&	getName(void) const { return (_name); }
-	std::string	getUsers(void) {
+	std::map<int,User*>&	getUsers(void) { return _chanusers; }
+	std::string	getUsersString(void) {
 		std::string users = "";
 		for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
 		{

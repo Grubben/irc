@@ -304,28 +304,32 @@ void Server::join(ServerMessage serverMessage)
     //// Send names list TODO
     //// std::map<std::string, Channel>::iterator it = _channels.begin();
     std::cout << "join command" << std::endl;
+    serverMessage.outputPrompt();
+
     User&   joiner = getUserBySocket(serverMessage.getSocket());
-    const std::string chaname = trim(serverMessage.getParams()[0]);
+    const std::string chaname = serverMessage.getParams()[0];
     Channel& channel = _channels.find(chaname)->second;
     
+    std::cout << (int)chaname[6] << std::endl;
+
     // Actually add
     userAddToChannel(joiner, chaname);
     
     // JOIN message
-    std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname + "\r\n";
+    std::string msg = ":" + joiner.getNickname() + " JOIN " + chaname;
     std::cout << msg;
-    sendMsg(serverMessage.getSocket(), msg);
+    sendMsg(serverMessage.getSocket(), msg + "\r\n");
 
     // 332
-    msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic() + "\r\n";
-    std::cout << msg;
-    sendMsg(serverMessage.getSocket(), msg);
+    msg = joiner.getNickname() + " " + chaname + " :" + channel.getTopic();
+    // std::cout << msg;
+    sendMsg(serverMessage.getSocket(), msg + "\r\n");
 
     // 353
     //TODO: apply correct symbol
-    msg = joiner.getNickname() + " = " + chaname + " :" + channel.getUsers() + "\r\n";
+    msg = joiner.getNickname() + " = " + chaname + " :" + channel.getUsersString();
     std::cout << msg;
-    sendMsg(serverMessage.getSocket(), msg);
+    sendMsg(serverMessage.getSocket(), msg + "\r\n");
 
     // 366
     msg = joiner.getNickname() + " " + chaname + " :End of /NAMES list\r\n";
