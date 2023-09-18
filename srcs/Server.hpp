@@ -83,7 +83,7 @@ private:
     void                    dataReceived(int i);
     void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
 
-    int                     sendMsg(int socket, std::string msg);
+    int                     sendAll(int socket, std::string msg);
 
 public:
     Server(std::string port, std::string password);
@@ -108,6 +108,7 @@ public:
     void                    userAddToChannel(User& user, std::string chaname); // Creates channel if non-existant
     void                    userRmFromChannel(User& user, std::string chaname);
     // void                    channelDestroy(Channel& channel); //TODO: do we need this func?
+    bool                    channelExists(std::string chaname);
 
     /* Commands*/
 	void 	execute(std::list<ServerMessage> messageList);

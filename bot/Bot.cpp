@@ -36,10 +36,10 @@ int main(void)
     Bot bot;
 
     std::string nick("NICK " + bot.getBotNickname() + "\r\n");
-    send(bot.getSocket(), nick.c_str(), nick.size(), 0);
+    sendAll(bot.getSocket(), nick.c_str(), nick.size(), 0);
 
     std::string user("USER " + bot.getBotUsername() + " 0 * :" + bot.getBotNickname() + "\r\n");
-    send(bot.getSocket(), user.c_str(), user.size(), 0);
+    sendAll(bot.getSocket(), user.c_str(), user.size(), 0);
 
     char buffer[1024];
     int len = recv(bot.getSocket(), &buffer, sizeof(buffer) - 1, 0);
@@ -47,7 +47,7 @@ int main(void)
     std::cout << buffer << std::endl;
 
     std::string pass("PASS " + std::string(CONNECTION_PASSWORD) + "\r\n");
-    send(bot.getSocket(), pass.c_str(), pass.size(), 0);
+    sendAll(bot.getSocket(), pass.c_str(), pass.size(), 0);
     
     len = recv(bot.getSocket(), &buffer, sizeof(buffer) - 1, 0);
     buffer[len] = 0;
@@ -68,7 +68,6 @@ int main(void)
             send(bot.getSocket(), pong.c_str(), pong.size(), 0);
         }
     }
-
 
     return 0;
 }
