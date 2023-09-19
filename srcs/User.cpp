@@ -43,7 +43,7 @@ User&	User::operator= (const User& copy)
 
 void User::says(std::string message, Server& server)
 {
-	message = trim(message);
+	//message = trim(message);
     std::list<ServerMessage> messageList = ServerMessage::loadMessageIntoList(message, _socket);
     
     server.execute(messageList);

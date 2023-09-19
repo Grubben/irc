@@ -146,8 +146,8 @@ void Server::acceptConnection(int& fdMax)
         fdMax = newUserSocket;
     userCreate(newUserSocket);
     
-    std::string passMsg = ":This server requires a password. Please type /PASS <password> in order to try to log in.\r\n";
-    sendAll(newUserSocket, passMsg);
+    std::string passMsg = "This server requires a password. Please type /PASS <password> in order to try to log in.\r\n";
+    sendSuccessMessage(newUserSocket, passMsg, "");
 }
 
 void Server::dataReceived(int i)

@@ -112,7 +112,7 @@ public:
 
     /* Commands*/
 	void 	execute(std::list<ServerMessage> messageList);
-    void    sendErrorMessage(int socket, std::string error, std::string extraMessage, bool toStop);
+    void    sendErrorMessage(int socket, std::string error);
     void    sendSuccessMessage(int socket, std::string numeric, std::string extraMessage);
 	
     void	cap(ServerMessage serverMessage);
