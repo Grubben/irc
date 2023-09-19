@@ -326,6 +326,9 @@ void Server::names(ServerMessage serverMessage)
 {
     User&   user = getUserBySocket(serverMessage.getSocket());
 
+    if (serverMessage.getParams().size() < 1)
+        throw std::string(ERR_NEEDMOREPARAMS("NAMES"));
+
     // Outside of channels
     if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
     {
