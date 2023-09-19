@@ -83,8 +83,6 @@ private:
     void                    dataReceived(int i);
     void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
 
-    int                     sendAll(int socket, std::string msg);
-
 public:
     Server(std::string port, std::string password);
     ~Server();

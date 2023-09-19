@@ -46,6 +46,7 @@ public:
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
 	void	addInvited(std::string username) { _invited.push_back(username); }
+	void	broadcast(std::string& msg);
 };
 
 

@@ -65,3 +65,11 @@ void    Channel::usersDrop()
     //     _chanusers.pop_back();
     // }
 }
+
+void    Channel::broadcast(std::string& msg)
+{
+    for (std::map<int, User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
+    {
+        sendAll(it->second->getSocket(), msg);
+    }
+}

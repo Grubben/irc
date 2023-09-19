@@ -73,3 +73,16 @@ int isDigit(char c)
         return 1;
     return 0;
 }
+
+int sendAll(int socket, std::string msg)
+{
+    long long n = 0;
+
+    while (n < (long long)msg.size())
+    {
+        n += send(socket, msg.c_str() + n, msg.size() - n, 0);
+        if (n == -1)
+            return -1;
+    }
+    return 0;
+}

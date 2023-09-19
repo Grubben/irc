@@ -158,10 +158,6 @@ void Server::dataReceived(int i)
     {
         if (len == 0)
             std::cout << "Client has left the network. fd: " << i << std::endl;
-        // else
-        // {
-        //     perror("recv");
-        // }
         message[len] = 0;
         close(i);
         FD_CLR(i, &_masterFDs);
@@ -180,19 +176,6 @@ void Server::dataReceived(int i)
 
 }
 
-int Server::sendAll(int socket, std::string msg)
-{
-    long int n = 0;
-
-    while (n < msg.size())
-    {
-        n += send(socket, msg.c_str() + n, msg.size() - n, 0);
-        if (n == -1)
-            return -1;
-    }
-    return 0;
-}
-
 void    Server::userQuit(const int socket)
 {
     std::map<int, User>::iterator search = _users.find(socket);
@@ -208,11 +191,6 @@ void    Server::userQuit(const int socket)
 void    Server::userCreate(int socket)
 {
     _users.insert(std::pair<int, User>(socket, User( socket)));
-
-    // std::map<int,User>::iterator search = _users.find(socket);
-    // std::cout << _users.find(socket)->first << std::endl;
-    // _users.erase(search);
-    // std::cout << _users.find(socket)->first << std::endl;
 }
 
 void    Server::userAddToChannel(User& user, std::string chaname)
@@ -237,10 +215,8 @@ void    Server::userRmFromChannel(User& user, std::string chaname)
     if (search == _channels.end())
         return ;
     int nusers = search->second.userRemove(user);
-    // std::cout << nusers << " users left in channel: " << chaname << std::endl;
     if (nusers == 0)
     {
-        // std::cout << "erasing " << chaname << std::endl;
         _channels.erase(search);
     }
 }
