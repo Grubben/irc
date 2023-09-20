@@ -6,6 +6,7 @@
 #define CONNECTION_PASSWORD "adeus"
 #define BOT_PORT 6697
 
+#include <map>
 #include "../srcs/Server.hpp"
 #include "../srcs/Utils.hpp"
 
@@ -34,7 +35,11 @@ public:
     std::string     getBotNickname(void) const  { return (_botNickname); };
     std::string     getBotUsername(void) const  { return (_botUsername); };
 
+    std::map<std::string, void (*)(int, std::vector<std::string>&)>   _actions;
     const std::string     _summonWord;
+
+    static void    ponger(int socket, std::vector<std::string>& msgwords);
+    static void    tictactoe(int socket, std::vector<std::string>& msgwords);
 };
 
 
