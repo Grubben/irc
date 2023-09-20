@@ -27,6 +27,11 @@ void Server::execute(std::list<ServerMessage> messageList)
             sendErrorMessage(it->getSocket(), error);
             it->outputPrompt();
         }
+        catch(std::exception& e)
+        {
+            std::cout << e.what() << std::endl;
+            it->outputPrompt();
+        }
 	}
 }
 
@@ -124,13 +129,6 @@ void Server::user(ServerMessage serverMessage)
     std::string newUser = serverMessage.getParams()[0];
     if(newUser.find_first_not_of(ACCEPTED_CHARS_NAME) != std::string::npos)
         throw std::string(ERR_ERRONEUSNICKNAME(newUser, "Invalid character(s) used"));
-
-    std::map<int, User>::iterator it = _users.begin();
-    for (; it != _users.end(); it++)
-    {
-        if (it->second.getUsername() == newUser)
-            throw std::string(ERR_NICKNAMEINUSE(newUser));
-    }
     
     user.setUsername(newUser);
     std::cout << GREEN << "new username: " << user.getUsername() << RESET << std::endl;
@@ -144,8 +142,11 @@ void Server::privmsg(ServerMessage serverMessage)
         throw std::string(ERR_NEEDMOREPARAMS("PRIVMSG"));
 
     std::vector<std::string> receivers = split(serverMessage.getParams()[0], ",");
-    std::string message = serverMessage.getParams()[1];
     User& sender = _users[serverMessage.getSocket()];
+
+    std::string message = "";
+    for (size_t i = 1; i < serverMessage.getParams().size(); i++)
+        message += serverMessage.getParams()[i] + " ";
 
     // Swap vector to list for easier removal
     std::list<std::string> receiversList(receivers.begin(), receivers.end());
@@ -233,11 +234,6 @@ void Server::quit(ServerMessage serverMessage)
     sendSuccessMessage(serverMessage.getSocket(), QUIT(quitNick), "");
 }
 
-void Server::mode(ServerMessage serverMessage)
-{
-    std::cout << "mode command" << std::endl;
-}
-
 /*  CHANNEL OPERATIONS  */
 void Server::join(ServerMessage serverMessage)
 {
@@ -259,10 +255,18 @@ void Server::join(ServerMessage serverMessage)
 
     userAddToChannel(joiner, chaname);
     Channel& channel = _channels.find(chaname)->second;
+    //add mode if empty
     sendSuccessMessage(joiner.getSocket(), JOIN(joiner.getNickname(), chaname), "");
-    sendSuccessMessage(joiner.getSocket(), RPL_TOPIC(joiner.getNickname() , chaname, channel.getTopic()), "");    
+    if (channel.getUsers().size() == 1)
+    {
+        std::cout << "modes: " << channel.getModes() << std::endl;
+        channel.addOperator(joiner);
+        sendSuccessMessage(joiner.getSocket(), MODE(chaname, channel.getModes()), "");
+    }
     sendSuccessMessage(joiner.getSocket(), RPL_NAMREPLY(joiner.getNickname(), chaname, channel.getUsersString()), "");
     sendSuccessMessage(joiner.getSocket(), RPL_ENDOFNAMES(joiner.getNickname(), chaname), "");
+    sendSuccessMessage(joiner.getSocket(), RPL_CHANNELMODEIS(joiner.getNickname(), chaname, channel.getModes()), "");
+    sendSuccessMessage(joiner.getSocket(), RPL_TOPIC(joiner.getNickname() , chaname, channel.getTopic()), "");    
 }
 
 void Server::part(ServerMessage serverMessage)
@@ -421,5 +425,107 @@ void Server::kick(ServerMessage serverMessage)
             break;
         }
     }
+
+    throw std::string(ERR_NOSUCHNICK(kickedName));
 }
 
+void Server::mode(ServerMessage serverMessage)
+{
+    std::cout << "modes command" << std::endl;
+
+    /*
+        * davz sets channel keyword to ola
+        * davz sets channel keyword to ola
+        * Channel #testeeeeee modes: +Cnstk ola
+        * Channel #testeeeeee created on Wed Sep 20 15:32:38 2023
+        * davz sets channel limit to 10
+        * Channel #testeeeeee modes: +Cnstlk 10 ola
+        * Channel #testeeeeee created on Wed Sep 20 15:32:38 2023
+    */
+
+    // Implement print of user modes in channel
+    if (serverMessage.getParams().size() == 1)
+    {
+        const std::string chaname = serverMessage.getParams()[0];
+        if (! channelExists(chaname))
+            throw std::string(ERR_NOSUCHCHANNEL(chaname));
+        
+        Channel& channel = _channels.find(chaname)->second;
+
+        std::string modes = channel.getModes();
+        sendSuccessMessage(serverMessage.getSocket(), RPL_CHANNELMODEIS(_users[serverMessage.getSocket()].getNickname(), chaname, modes), ""); //getModes()
+        return ;
+    }
+    else if (serverMessage.getParams().size() < 2)
+        throw std::string(ERR_NEEDMOREPARAMS("MODE"));
+
+    if (serverMessage.getParams()[0].find_first_of("&#") != 0)
+        throw std::string(ERR_NOSUCHCHANNEL(serverMessage.getParams()[0]));
+    
+    const std::string chaname = serverMessage.getParams()[0];
+    const std::string modes = serverMessage.getParams()[1];
+    User&   user = getUserBySocket(serverMessage.getSocket());
+
+    if (! channelExists(chaname))
+        throw std::string(ERR_NOSUCHCHANNEL(chaname));
+    std::map<std::string, Channel>::iterator chan = _channels.find(chaname);
+    if (chan->second.isUserInChannel(user) == false)
+        throw std::string(ERR_NOTONCHANNEL(chaname));
+    Channel& channel = chan->second;
+    if (channel.isOperator(user) == false)
+        throw std::string(ERR_CHANOPRIVSNEEDED(chaname));
+    
+    if ((modes.size() != 2) || (modes[0] != '+' && modes[0] != '-') || \
+        (modes[1] != 'i' && modes[1] != 't' && modes[1] != 'k' && modes[1] != 'l' && modes[1] != 'o'))
+        throw std::string(ERR_UNKNOWNMODE(user.getNickname(), modes));
+    
+    if (serverMessage.getParams().size() == 2)
+    {
+        bool   sign = modes[0] == '+'; // + = 1, - = 0
+        char   mode = modes[1];
+        if (mode != 'i' && mode != 't')
+            throw std::string(ERR_NEEDMOREPARAMS("MODE"));
+        if (mode == 'i')
+        {
+            channel.setInviteOnly(sign);
+            //sendSuccessMessage(user.getSocket(), RPL_CHANNELMODEIS(user.getNickname(), chaname, modes, ""), "");
+            sendSuccessMessage(user.getSocket(), MODE(chaname, modes), "");
+        }
+        else if (mode == 't')
+        {
+            channel.setTopicRestrict(sign);
+            //sendSuccessMessage(user.getSocket(), RPL_CHANNELMODEIS(user.getNickname(), chaname, modes, ""), "");
+            sendSuccessMessage(user.getSocket(), MODE(chaname, modes), "");
+        }
+    }
+    else if (serverMessage.getParams().size() == 3)
+    {
+        bool   sign = modes[0] == '+';
+        char   mode = modes[1];
+        std::string param = serverMessage.getParams()[2];
+        if (mode == 'k')
+        {
+            channel.setPassword(sign, param);
+            //sendSuccessMessage(user.getSocket(), RPL_CHANNELMODEIS(user.getNickname(), chaname, modes, param), "");
+            sendSuccessMessage(user.getSocket(), MODE(chaname, modes + " " + param), "");
+        }
+        else if (mode == 'l')
+        {
+            int maxUsers = std::atoi(param.c_str());
+            if (maxUsers > 5000 || maxUsers < 0)
+                throw std::string(ERR_NEEDMOREPARAMS("MODE"));
+            channel.setMaxUsers(sign, maxUsers);
+            //sendSuccessMessage(user.getSocket(), RPL_CHANNELMODEIS(user.getNickname(), chaname, modes, param), "");
+            sendSuccessMessage(user.getSocket(), MODE(chaname, modes + " " + param), "");
+        }
+        else if (mode == 'o')
+        {
+            if (sign)
+                channel.addOperator(channel.getUserByNickname(param));
+            else 
+                channel.removeOperator(channel.getUserByNickname(param));
+            //sendSuccessMessage(user.getSocket(), RPL_CHANNELMODEIS(user.getNickname(), chaname, modes, param), "");
+            sendSuccessMessage(user.getSocket(), MODE(chaname, modes + " " + param), "");
+        }
+    }
+}
