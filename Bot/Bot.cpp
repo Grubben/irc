@@ -1,7 +1,7 @@
 #include "Bot.hpp"
 
 Bot::Bot()
-    : _summonWord("/bot")
+    : _summonWord("bot")
 {
     _botNickname = BOTNAME;
     _botUsername = BOTNAME;
@@ -43,6 +43,7 @@ int main(void)
     sendAll(bot.getSocket(), user);
 
     char buffer[1024];
+
     int len = recv(bot.getSocket(), &buffer, sizeof(buffer) - 1, 0);
     buffer[len] = 0;
     std::cout << buffer << std::endl;
@@ -54,20 +55,35 @@ int main(void)
     buffer[len] = 0;
     std::cout << buffer << std::endl;
 
-    std::string joinmsg("JOIN #BotChannel\r\n");
+    std::string joinmsg("JOIN #mustard\r\n");
     sendAll(bot.getSocket(), joinmsg);
 
     while (1)
     {
         len = recv(bot.getSocket(), &buffer, sizeof(buffer) - 1, 0);
         buffer[len] = 0;
-        std::cout << buffer << std::endl;
-    
-        if (strstr(buffer, "PING") != NULL)
-        {
-            std::string pong("PRIVMSG #BotChannel PONG\r\n");
-            sendAll(bot.getSocket(), pong);
-        }
+
+        std::string msg = buffer;
+        std::cout << msg << std::endl;
+
+        msg = split(msg, "#")[1];
+
+        std::vector<std::string>    msgwords = split(msg, " ");
+
+        msgwords[1] = msgwords[1].substr(1);
+
+
+        std::cout << msgwords[0] << std::endl;
+        std::cout << msgwords[1] << std::endl;
+
+        // if (msgwords.size() > 2 && msgwords[2] == bot._summonWord)
+        // {
+        //     if (msgwords[1] == "PING")
+        //     {
+        //         std::string pong("PRIVMSG #mustard PONG\r\n");
+        //         sendAll(bot.getSocket(), pong);
+        //     }
+        // }
     }
 
     return 0;

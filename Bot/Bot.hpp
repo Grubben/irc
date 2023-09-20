@@ -20,7 +20,6 @@ private:
     std::string     _botNickname;
     std::string     _botUsername;
 
-    const std::string     _summonWord;
 
     hostent*        _host;
     sockaddr_in     _addr;
@@ -35,6 +34,7 @@ public:
     std::string     getBotNickname(void) const  { return (_botNickname); };
     std::string     getBotUsername(void) const  { return (_botUsername); };
 
+    const std::string     _summonWord;
 };
 
 

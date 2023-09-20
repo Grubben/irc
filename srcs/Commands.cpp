@@ -357,10 +357,10 @@ void Server::names(ServerMessage serverMessage)
 
 void    Server::rpl_list(User& user)
 {
-    std::stringstream   itos;
     for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++)
     {
 
+        std::stringstream itos;
         itos << it->second.getUsers().size();
         std::string clientCount = itos.str();
         itos.clear();
