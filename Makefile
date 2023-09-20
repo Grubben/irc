@@ -31,4 +31,7 @@ fclean: clean
 
 re: fclean all
 
+bot: all
+	$(CXX) $(CXXFLAGS) -o bot Bot/Bot.cpp srcs/Utils.cpp
+
 .PHONY: all clean fclean re

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef BOT_HPP
 #define BOT_HPP
 
@@ -6,6 +7,7 @@
 #define BOT_PORT 6697
 
 #include "../srcs/Server.hpp"
+#include "../srcs/Utils.hpp"
 
 typedef struct hostent      hostent;
 typedef struct sockaddr_in  sockaddr_in;
@@ -17,6 +19,8 @@ private:
     int             _socket;
     std::string     _botNickname;
     std::string     _botUsername;
+
+    const std::string     _summonWord;
 
     hostent*        _host;
     sockaddr_in     _addr;
