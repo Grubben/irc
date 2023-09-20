@@ -83,6 +83,7 @@ void Server::nick(ServerMessage serverMessage)
     //TODO: send numeric macro to change nick
     User& user = _users[serverMessage.getSocket()];
 
+
     if (serverMessage.getParams().empty())
         throw std::string(ERR_NONICKNAMEGIVEN);
 
@@ -106,6 +107,7 @@ void Server::nick(ServerMessage serverMessage)
     //if (oldNick != "" && user.isLoggedIn())
     //    sendSuccessMessage(user.getSocket(), ":" + oldNick + " NICK :" + newNick, "");
     user.setNickname(newNick);
+    sendSuccessMessage(user.getSocket(), RPL_WELCOME2(user.getNickname()), "");
     std::cout << GREEN << "new nickname: " << user.getNickname() << RESET << std::endl;
 }
 
@@ -351,9 +353,28 @@ void Server::names(ServerMessage serverMessage)
     }
 }
 
+// void    rpl_list(User& user, std::string chaname)
+
+void    Server::rpl_list(User& user)
+{
+    std::stringstream   itos;
+    for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++)
+    {
+
+        itos << it->second.getUsers().size();
+        std::string clientCount = itos.str();
+        itos.clear();
+        sendSuccessMessage(user.getSocket(), RPL_LIST(user.getNickname(), it->first, clientCount, "TOPIC"), "");
+    }
+}
+
 void Server::list(ServerMessage serverMessage)
 {
     std::cout << "list command" << std::endl;
+    User&   user = getUserBySocket(serverMessage.getSocket());
+    sendSuccessMessage(user.getSocket(), RPL_LISTSTART(user.getNickname()), "");
+    rpl_list(user);
+    sendSuccessMessage(user.getSocket(), RPL_LISTEND(user.getNickname()), "");
 }
 
 void Server::invite(ServerMessage serverMessage)
