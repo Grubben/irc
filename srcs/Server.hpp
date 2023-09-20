@@ -130,6 +130,7 @@ public:
     void    invite(ServerMessage serverMessage);
     void    kick(ServerMessage serverMessage);
     void    mode(ServerMessage serverMessage);
+    void    who(ServerMessage serverMessage);
 
 };
 

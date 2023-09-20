@@ -70,6 +70,7 @@ Server::Server(std::string port, std::string password)
     _commandMap["INVITE"] = &Server::invite;
     _commandMap["KICK"] = &Server::kick;
     _commandMap["MODE"] = &Server::mode;
+    _commandMap["WHO"] = &Server::who;
 }
 
 Server::~Server()

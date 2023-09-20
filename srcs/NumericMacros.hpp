@@ -16,11 +16,11 @@
 #define ERR_PASSWDMISMATCH                          (":" SERVER_NAME " 464 : Password incorrect\r\n")
 #define ERR_USERONCHANNEL(nickname, channel)        (":" SERVER_NAME " 443 " + nickname + " " + channel + " :is already on channel\r\n")
 #define ERR_UNKNOWNMODE(nickname, mode)             (":" SERVER_NAME " 472 " + nickname + " " + mode + " :is unknown mode char to me\r\n")
-#define ERR_CHANOPRIVSNEEDED(channel)               (":" SERVER_NAME " 482 " + channel + " :You're not channel operator\r\n")
+#define ERR_CHANOPRIVSNEEDED(nickname, channel)     (":" SERVER_NAME " 482 " + nickname + " " + channel + " :You're not channel operator\r\n")
 
 #define RPL_WELCOME(nickname)                       (":" SERVER_NAME " 001 " + nickname + " :Welcome to the <inserir nome> IRC Network, " + nickname + "\r\n")
 #define RPL_UMODEIS(nickname, modes)                (":" SERVER_NAME " 221 " + nickname + " " + modes + "\r\n")
-#define RPL_CHANNELMODEIS(nickname, channel, modes) (":" SERVER_NAME " 324 " + nickname + " " + channel + " " + modes "\r\n")
+#define RPL_CHANNELMODEIS(nickname, channel, modes) (":" SERVER_NAME " 324 " + nickname + " " + channel + " " + modes + "\r\n")
 #define RPL_TOPIC(nickname, channel, topic)         (":" SERVER_NAME " 332 " + nickname + " " + channel + " :" + topic + "\r\n")
 #define RPL_NOTOPIC(nickname, channel)              (":" SERVER_NAME " 331 " + nickname + " " + channel + " :No topic is set\r\n")
 // If we do the bonus, implement this: https://ircv3.net/specs/extensions/bot-mode
@@ -30,7 +30,11 @@
 #define RPL_ENDOFNAMES(nickname, channel)           (":" SERVER_NAME " 366 " + nickname + " " + channel + " :End of /NAMES list\r\n")
 #define RPL_YOUREOPER                               (":" SERVER_NAME " 381 : You are now an IRC operator\r\n")
 
+#define RPL_WHOSPCRPL(nickname, channel)            (":" SERVER_NAME " 354 " + nickname + " " + channel + "\r\n")
+#define RPL_ENDOFWHO(nickname)                      (":" SERVER_NAME " 315 " + nickname + " :End of /WHO list\r\n")
+
 #define MODE(channel, modes)                        (":" SERVER_NAME " MODE " + channel + " " + modes + "\r\n")
+#define OP_MODE(nickname, channel, modes)           (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " MODE " + channel + " " + modes + "\r\n")
 #define JOIN(joiner, channel)                       (":" + joiner + "!" + joiner + "@" + SERVER_NAME " JOIN " + channel + "\r\n")
 #define QUIT(nickname)                              (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " QUIT :Bye bye\r\n")
 #define PRIVMSG(sender, receiver, message)          (":" + sender + "!" + sender + "@" + SERVER_NAME + " PRIVMSG " + receiver + " :" + message + "\r\n")
