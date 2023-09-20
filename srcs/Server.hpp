@@ -7,10 +7,12 @@
 #include <map>
 #include <iostream>
 #include <cstdlib>
+#include <sstream>
 #include <cstring>
 #include <errno.h>
 #include <unistd.h>
 #include <vector>
+#include <string>
 #include <signal.h>
 
 #include <netdb.h>
@@ -82,7 +84,7 @@ private:
     void                    acceptConnection(int& fdMax);
     void                    dataReceived(int i);
     void                    channelCreate(std::string chaname); // Not public. if public will create empty channel
-
+    void                    rpl_list(User& user);
 public:
     Server(std::string port, std::string password);
     ~Server();
