@@ -194,20 +194,6 @@ void    Server::userCreate(int socket)
     _users.insert(std::pair<int, User>(socket, User( socket)));
 }
 
-void    Server::userAddToChannel(User& user, std::string chaname)
-{
-    std::map<std::string,Channel>::iterator chan = _channels.find(chaname);
-
-    if (chan == _channels.end())
-    {
-        _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
-    }
-    chan = _channels.find(chaname);
-
-    user.channelJoin(chan->second);
-    chan->second.userAdd(user);
-}
-
 void    Server::userRmFromChannel(User& user, std::string chaname)
 {
     user.channelPart(chaname);

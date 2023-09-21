@@ -106,7 +106,6 @@ public:
     /*  API */
     void                    userCreate(int socket);
     void                    userQuit(const int sock);
-    void                    userAddToChannel(User& user, std::string chaname); // Creates channel if non-existant
     void                    userRmFromChannel(User& user, std::string chaname);
     // void                    channelDestroy(Channel& channel); //TODO: do we need this func?
     bool                    channelExists(std::string chaname);
