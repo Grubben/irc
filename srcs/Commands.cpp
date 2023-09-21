@@ -290,21 +290,25 @@ void Server::part(ServerMessage serverMessage)
 
 void Server::topic(ServerMessage serverMessage)
 {
-    // Missing:
-    //   ERR_CHANOPRIVSNEEDED -> Mode +t
-
-    // Need to implement broadcast function and use it for this command when topic is changed
+    User&   user = getUserBySocket(serverMessage.getSocket());
+    const std::string chaname = serverMessage.getParams()[0];
+    Channel& channel = _channels.find(chaname)->second;
 
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("TOPIC"));
 
-    const std::string chaname = serverMessage.getParams()[0];
     if (! channelExists(chaname))
         throw std::string(ERR_NOSUCHCHANNEL(chaname));
     
-    User&   user = getUserBySocket(serverMessage.getSocket());
-    if (! _channels.find(chaname)->second.isUserInChannel(user))
+    if (! channel.isUserInChannel(user))
         throw std::string(ERR_NOTONCHANNEL(chaname));
+
+    // Privilege checking
+    if (channel.isTopicRestrict() == true)
+    {
+        if (channel.isOperator(user) == false)
+            throw std::string(ERR_CHANOPRIVSNEEDED(user.getNickname(), chaname));
+    }
 
     if (serverMessage.getParams().size() == 1)
     {
@@ -316,11 +320,10 @@ void Server::topic(ServerMessage serverMessage)
     }
     else {
     // didnt touch this, if topic changed then it should be broadcasted to all users in channel
-    const std::string newtopic = serverMessage.getParams()[1].substr(1);
-    _channels.find(chaname)->second.setTopic(newtopic);
+        const std::string newtopic = serverMessage.getParams()[1].substr(1);
+        _channels.find(chaname)->second.setTopic(newtopic);
 
     }
-    //TODO: check permissions
     //TODO: check serverMessage.getParams()[1][0] is a ":"
 
 }
