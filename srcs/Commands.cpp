@@ -107,12 +107,8 @@ void Server::nick(ServerMessage serverMessage)
             throw std::string(ERR_NICKNAMEINUSE(newNick));
     }
     
-    // With this is very buggy, is it really neccessary?
-    //std::string oldNick = user.getNickname();
-    //if (oldNick != "" && user.isLoggedIn())
-    //    sendSuccessMessage(user.getSocket(), ":" + oldNick + " NICK :" + newNick, "");
     user.setNickname(newNick);
-    sendSuccessMessage(user.getSocket(), RPL_WELCOME2(user.getNickname()), "");
+    sendSuccessMessage(user.getSocket(), RPL_CHANGENICK(user.getNickname()), "");
     std::cout << GREEN << "new nickname: " << user.getNickname() << RESET << std::endl;
 }
 

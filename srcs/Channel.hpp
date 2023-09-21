@@ -62,30 +62,7 @@ public:
 	const std::string&	getTopic() const { return _topic; };
 	void				setTopic(const std::string& newtopic) { _topic = newtopic; };
 
-	std::string getModes(void) {
-		std::stringstream modeString;
-        modeString << "+";
-        if (_isInviteOnly)
-            modeString << "i";
-        if (_topicRestrict)
-            modeString << "t";
-        if (_hasPassword)
-            modeString << "k";
-        if (_userLimit)
-            modeString << "l";
-        
-        if (_userLimit)
-            modeString << " " << _maxUsers;
-        if (_hasPassword)
-            modeString << " " << _password;
-        
-        std::string tmp = modeString.str();
-        std::cout << tmp << std::endl;
-		if (tmp.length() == 1)
-            tmp = "";
-		
-		return tmp;
-	}
+	std::string 		getModes(void) { std::stringstream modeString; modeString << "+"; if (_isInviteOnly) modeString << "i"; if (_topicRestrict) modeString << "t"; if (_hasPassword) modeString << "k"; if (_userLimit) modeString << "l"; if (_userLimit) modeString << " " << _maxUsers; if (_hasPassword) modeString << " " << _password; std::string tmp = modeString.str(); if (tmp.length() == 1)     tmp = ""; return tmp; };
 
 	/*	API	*/
 	void	userAdd(User& user);

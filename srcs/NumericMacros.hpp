@@ -19,6 +19,7 @@
 #define ERR_CHANOPRIVSNEEDED(nickname, channel)     (":" SERVER_NAME " 482 " + nickname + " " + channel + " :You're not channel operator\r\n")
 
 #define RPL_WELCOME(nickname)                       (":" SERVER_NAME " 001 " + nickname + " :Welcome to the <inserir nome> IRC Network, " + nickname + "\r\n")
+#define RPL_CHANGENICK(nickname)                    (":" SERVER_NAME " 001 " + nickname + " :Changed nick to " + nickname + "\r\n")
 #define RPL_UMODEIS(nickname, modes)                (":" SERVER_NAME " 221 " + nickname + " " + modes + "\r\n")
 #define RPL_CHANNELMODEIS(nickname, channel, modes) (":" SERVER_NAME " 324 " + nickname + " " + channel + " " + modes + "\r\n")
 #define RPL_TOPIC(nickname, channel, topic)         (":" SERVER_NAME " 332 " + nickname + " " + channel + " :" + topic + "\r\n")
