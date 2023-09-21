@@ -112,7 +112,6 @@ void Server::nick(ServerMessage serverMessage)
     //if (oldNick != "" && user.isLoggedIn())
     //    sendSuccessMessage(user.getSocket(), ":" + oldNick + " NICK :" + newNick, "");
     user.setNickname(newNick);
-    sendSuccessMessage(user.getSocket(), RPL_WELCOME2(user.getNickname()), "");
     std::cout << GREEN << "new nickname: " << user.getNickname() << RESET << std::endl;
 }
 

@@ -20,6 +20,12 @@
 
 #define RPL_WELCOME(nickname)                       (":" SERVER_NAME " 001 " + nickname + " :Welcome to the <inserir nome> IRC Network, " + nickname + "\r\n")
 #define RPL_UMODEIS(nickname, modes)                (":" SERVER_NAME " 221 " + nickname + " " + modes + "\r\n")
+
+#define RPL_LISTSTART(nickname)                     (":" SERVER_NAME " 321 " + nickname + " Channel :Users Name\r\n")
+#define RPL_LIST(nickname, channel, clientCount, topic)    (":" SERVER_NAME " 322 " + nickname + " " + channel + " " + clientCount + " :" + topic + "\r\n")
+#define RPL_LISTEND(nickname)                       (":" SERVER_NAME " 323 " + nickname + " :End of /LIST\r\n")
+
+
 #define RPL_CHANNELMODEIS(nickname, channel, modes) (":" SERVER_NAME " 324 " + nickname + " " + channel + " " + modes + "\r\n")
 #define RPL_TOPIC(nickname, channel, topic)         (":" SERVER_NAME " 332 " + nickname + " " + channel + " :" + topic + "\r\n")
 #define RPL_NOTOPIC(nickname, channel)              (":" SERVER_NAME " 331 " + nickname + " " + channel + " :No topic is set\r\n")
