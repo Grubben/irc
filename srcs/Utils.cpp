@@ -86,3 +86,12 @@ int sendAll(int socket, std::string msg)
     }
     return 0;
 }
+
+std::string vec2str(std::vector<std::string>& svec)
+{
+    std::string string = "";
+    for (size_t i = 1; i < svec.size(); i++)
+        string += " " + svec[i];
+    string.erase(0,1); // erase first space
+    return string;
+}
