@@ -338,33 +338,28 @@ void Server::topic(ServerMessage serverMessage)
 void Server::names(ServerMessage serverMessage)
 {
     User&   user = getUserBySocket(serverMessage.getSocket());
+    const std::string chaname = serverMessage.getParams()[0];
+    Channel& channel = _channels.find(chaname)->second;
 
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("NAMES"));
 
+    //TODO: find a way to know what name of server is!
     // Outside of channels
-    if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
-    {
-        // TODO: Fill 'all' with list of users in all channels
-        sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), "*", "all"), "");
-        sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), "*"), "");
-        return;
-    }
+    // if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
+    // {
+    //     // TODO: Fill 'all' with list of users in all channels
+    //     sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), "*", "all"), "");
+    //     sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), "*"), "");
+    //     return;
+    // }
 
-    std::vector<std::string> chanames = split(serverMessage.getParams()[0], ",");
-    for (std::vector<std::string>::iterator it = chanames.begin(); it != chanames.end(); it++)
-    {
-        if (! channelExists(*it))
-            continue;
-        else if (_channels.find(*it) != _channels.end())
-        {
-            sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), *it, _channels.find(*it)->second.getUsersString()), "");
-            sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), *it), "");
-        }
-    }
+    if (! channelExists(chaname))
+        throw std::string(ERR_NOSUCHCHANNEL(chaname));
+
+    sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chaname, channel.getUsersString()), "");
+    sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), chaname), "");
 }
-
-// void    rpl_list(User& user, std::string chaname)
 
 void    Server::rpl_list(User& user)
 {
