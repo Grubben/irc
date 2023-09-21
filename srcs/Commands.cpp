@@ -318,14 +318,21 @@ void Server::topic(ServerMessage serverMessage)
         else
             sendSuccessMessage(user.getSocket(), RPL_TOPIC(user.getNickname(), chaname, topic), "");
     }
-    else {
-    // didnt touch this, if topic changed then it should be broadcasted to all users in channel
-        const std::string newtopic = serverMessage.getParams()[1].substr(1);
-        _channels.find(chaname)->second.setTopic(newtopic);
+    else
+    {
+        std::string newtopic = "";
+        for (size_t i = 1; i < serverMessage.getParams().size(); i++)
+            newtopic += serverMessage.getParams()[i] + " ";
+        newtopic.erase(0,1); // removing the ":"
+        
+        channel.setTopic(newtopic);
 
+        //Broadcast change of topic to all users in channel
+        if (newtopic == "")
+            channel.broadcast(RPL_NOTOPIC(user.getNickname(), chaname));
+        else
+            channel.broadcast(RPL_TOPIC(user.getNickname(), chaname, newtopic));
     }
-    //TODO: check serverMessage.getParams()[1][0] is a ":"
-
 }
 
 void Server::names(ServerMessage serverMessage)

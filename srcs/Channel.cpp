@@ -82,7 +82,7 @@ void    Channel::usersDrop()
     // }
 }
 
-void    Channel::broadcast(std::string& msg)
+void    Channel::broadcast(std::string msg)
 {
     for (std::map<int, User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
     {

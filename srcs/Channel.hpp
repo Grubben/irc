@@ -91,7 +91,7 @@ public:
 	void	userAdd(User& user);
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
-	void	broadcast(std::string& msg);
+	void	broadcast(std::string msg);
 };
 
 
