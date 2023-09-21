@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include <signal.h>
+#include <sstream>
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -121,7 +122,6 @@ public:
 	void	user(ServerMessage serverMessage);
 	void	oper(ServerMessage serverMessage);
 	void	quit(ServerMessage serverMessage);
-	void	mode(ServerMessage serverMessage);
     void	privmsg(ServerMessage serverMessage);
     // Channel Operations
 	void	join(ServerMessage serverMessage);
@@ -131,6 +131,8 @@ public:
     void    list(ServerMessage serverMessage);
     void    invite(ServerMessage serverMessage);
     void    kick(ServerMessage serverMessage);
+    void    mode(ServerMessage serverMessage);
+    void    who(ServerMessage serverMessage);
 
 };
 

@@ -7,6 +7,14 @@ Channel::Channel(Server& server, std::string name)
 	std::cout << "Channel constructor called" << std::endl;
     _topic = "<Default Topic>";
     _chanusers.clear();
+
+    _isInviteOnly = false;
+    _invited.clear();
+    _topicRestrict = true;
+    _hasPassword = false;
+    _password = "";
+    _userLimit = false;
+    _maxUsers = 0; // if 0, no limit
 }
 
 Channel::Channel(const Channel& copy)
@@ -29,6 +37,14 @@ Channel&	Channel::operator= (const Channel& copy)
 	{
         _topic = copy._topic;
         _chanusers = copy._chanusers;
+        _isInviteOnly = copy._isInviteOnly;
+        _invited = copy._invited;
+        _topicRestrict = copy._topicRestrict;
+        _hasPassword = copy._hasPassword;
+        _password = copy._password;
+        _userLimit = copy._userLimit;
+        _maxUsers = copy._maxUsers;
+        _operators = copy._operators;
     }
 	return (*this);
 }

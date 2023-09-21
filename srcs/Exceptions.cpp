@@ -65,3 +65,8 @@ const char* ChannelUnableToFind::what() const throw()
 {
     return "Couldn't find channel";
 }
+
+const char* ChannelUnableToFindUser::what() const throw()
+{
+    return "Couldn't find user in channel";
+}
