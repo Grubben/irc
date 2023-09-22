@@ -90,6 +90,23 @@ void Server::nick(ServerMessage serverMessage)
     
     user.setNickname(newNick);
     sendSuccessMessage(user.getSocket(), RPL_CHANGENICK(user.getNickname()), "");
+    sendSuccessMessage(user.getSocket(), NICK(user.getNickname(), newNick), "");
+
+    // if user is at least in 1 channel, change names in all channels
+    if (this->_channels.size() > 0)
+    {
+        std::map<std::string, Channel>::iterator chan = _channels.begin();
+        for (; chan != _channels.end(); chan++)
+        {
+            if (chan->second.isUserInChannel(user))
+            {
+                sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chan->first, chan->second.getUsersString()), "");
+                chan->second.broadcastMessagetoChannel(RPL_NAMREPLY(user.getNickname(), chan->first, chan->second.getUsersString()), user);
+                chan->second.broadcastMessagetoChannel(RPL_ENDOFNAMES(user.getNickname(), chan->first), user);
+            }
+        }
+    }
+
     std::cout << GREEN << "new nickname: " << user.getNickname() << RESET << std::endl;
 }
 
@@ -242,7 +259,7 @@ void Server::join(ServerMessage serverMessage)
     else
     {
         Channel& channel = _channels.find(chaname)->second;
-        if (channel.isInviteOnly() && channel.isInvited(joiner.getNickname()) == false)
+        if (channel.isInviteOnly() && channel.isInvited(joiner) == false)
         throw std::string(ERR_INVITEONLYCHAN(joiner.getNickname(), chaname));
     
         if (channel.hasPassword() && serverMessage.getParams().size() > 1 && channel.getPassword() != serverMessage.getParams()[1])
@@ -251,8 +268,8 @@ void Server::join(ServerMessage serverMessage)
         if (channel.hasUserLimit() && static_cast<int>(channel.getUsers().size()) >= channel.getMaxUsers())
             throw std::string(ERR_CHANNELISFULL(joiner.getNickname(), chaname));
 
-        if (channel.isInviteOnly() && channel.isInvited(joiner.getNickname()) == true)
-        channel.removeInvited(joiner.getNickname());
+        if (channel.isInviteOnly() && channel.isInvited(joiner) == true)
+        channel.removeInvited(joiner);
     }
     Channel& channel = _channels.find(chaname)->second;
 
@@ -375,6 +392,7 @@ void Server::names(ServerMessage serverMessage)
     
     Channel& channel = _channels.find(chaname)->second;
     sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chaname, channel.getUsersString()), "");
+    sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), chaname), "");
 }
 
 void    Server::rpl_list(User& user)
@@ -435,7 +453,7 @@ void Server::invite(ServerMessage serverMessage)
         throw std::string(ERR_USERONCHANNEL(invited, chaname));
 
     if (channel.isInviteOnly())
-        channel.addInvited(invitedUser.getNickname());
+        channel.addInvited(invitedUser);
     sendSuccessMessage(user.getSocket(), RPL_INVITING(user.getNickname(), invited, chaname), "");
     sendSuccessMessage(it->second.getSocket(), INVITE(user.getNickname(), invited, chaname), "");
 }
@@ -471,12 +489,13 @@ void Server::kick(ServerMessage serverMessage)
     if  (channel.isUserInChannel(kickedUser) == false)
         throw std::string(ERR_NOTONCHANNEL(chaname));
     userRmFromChannel(kickedUser, chaname);
-    if (channel.isInvited(kickedUser.getNickname()))
-        channel.removeInvited(kickedUser.getNickname());
+    if (channel.isInvited(kickedUser))
+        channel.removeInvited(kickedUser);
     if (channel.getUsers().size() == 0)
         _channels.erase(chaname);
-    sendSuccessMessage(user.getSocket(), KICK(user.getNickname(), chaname, kickedName), "");
-    sendSuccessMessage(kickedUser.getSocket(), KICK(user.getNickname(), chaname, kickedName), "");
+    sendSuccessMessage(user.getSocket(), KICK(user.getNickname(), chaname, kickedUser.getNickname(), reason), "");
+    sendSuccessMessage(kickedUser.getSocket(), KICK(user.getNickname(), chaname, kickedName, reason), "");
+    channel.broadcastMessagetoChannel(KICK(user.getNickname(), chaname, kickedUser.getNickname(), reason), user);
 }
 
 void Server::who(ServerMessage serverMessage)
@@ -507,7 +526,7 @@ void Server::who(ServerMessage serverMessage)
             flags += "@";
         sendSuccessMessage(user.getSocket(), RPL_WHOREPLY(currUser.getNickname(), channel.getName(), currUser.getUsername(), flags), "");
     }
-    sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname()), "");
+    sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname(), channel.getName()), "");
 }
 
 void Server::mode(ServerMessage serverMessage)
