@@ -20,7 +20,7 @@ private:
 
 	// Invite-Only     -i
 	bool						_isInviteOnly;
-	std::vector<std::string>	_invited;
+	std::vector<User*>			_invited;
 	// Topic-Restrict  -t
 	bool 						_topicRestrict;
 	// Key             -k
@@ -45,27 +45,17 @@ public:
 	const std::string&		getPassword(void) const { return _password; };
 	int 				getMaxUsers(void) const { return _maxUsers; };
 	User&               getUserByNickname(std::string nickname) { for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (it->second->getNickname() == nickname) return *(it->second); } throw ChannelUnableToFindUser(); };
-	std::string				getUsersString(void) 
-	{ 
-		std::string users = "";
-		for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) 
-		{ 
-			if (isOperator(*(it->second)))
-				users += "@";
-			users += it->second->getNickname() + " ";
-		}
-		return users; 
-	};
+	std::string				getUsersString(void) { std::string users = "";for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (isOperator(*(it->second)))users += "@";users += it->second->getNickname() + " ";}return users; };
 	bool 				isInviteOnly(void) const { return _isInviteOnly; };
-	bool 				isInvited(std::string username) { for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) { if (*it == username) return true; } return false; };
+	bool 				isInvited(User& user) const { for (std::vector<User*>::const_iterator it = _invited.begin(); it != _invited.end(); it++) { if ((*it)->getSocket() == user.getSocket()) return true; } return false; };
 	bool 				isTopicRestrict(void) const { return _topicRestrict; };
 	bool				isOperator(User& user) const { for (std::vector<User*>::const_iterator it = _operators.begin(); it != _operators.end(); it++) { if ((*it)->getSocket() == user.getSocket()) return true; } return false; };
 	bool 				hasPassword(void) const { return _hasPassword; };
 	bool 				hasUserLimit(void) const { return _userLimit; };
 	void 					addOperator(User& user) { if (!isOperator(user)) _operators.push_back(&user); };
-	void 					addInvited(std::string username) { if (!isInvited(username)) _invited.push_back(username); };
+	void 					addInvited(User& user) { if (!isInvited(user)) _invited.push_back(&user); };
 	void 					removeOperator(User& user) { for (std::vector<User*>::iterator it = _operators.begin(); it != _operators.end(); it++) { if ((*it)->getSocket() == user.getSocket()) { _operators.erase(it); return ; } } };
-	void 					removeInvited(std::string username) { for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) { if (*it == username) { _invited.erase(it); return ; } } };
+	void 					removeInvited(User& user) { for (std::vector<User*>::iterator it = _invited.begin(); it != _invited.end(); it++) { if ((*it)->getSocket() == user.getSocket()) { _invited.erase(it); return ; } } };	
 	void 					setPassword(bool sign, std::string pass) { if (sign == false && pass == _password){_password = ""; _hasPassword = false; }else{_password = pass; _hasPassword = true;} };
 	void 					setMaxUsers(bool sign, int max) { if (max == 0 || sign == false){ _maxUsers = 0; _userLimit = false; }else{_maxUsers = max; _userLimit = true;} }
 	void 					setInviteOnly(bool inviteOnly) { _isInviteOnly = inviteOnly; };
