@@ -187,7 +187,7 @@ void Server::oper(ServerMessage serverMessage)
 
     if (serverMessage.getParams().size() != 2)
         throw ERR_NEEDMOREPARAMS("OPER");
-
+    
     std::map<int, User>::iterator it = _users.begin();
     for (; it != _users.end(); it++)
     {
@@ -269,6 +269,13 @@ void Server::join(ServerMessage serverMessage)
         sendSuccessMessage(joiner.getSocket(), MODE(chaname, channel.getModes()), "");
         sendSuccessMessage(joiner.getSocket(), MODE(chaname, "+o " + joiner.getNickname()), "");
     }
+    // broadcast to all in channel that user joined
+    std::map<int, User*>::iterator it = channel.getUsers().begin();
+    for (; it != channel.getUsers().end(); it++)
+    {
+        if (it->first != joiner.getSocket())
+            sendSuccessMessage(it->first, JOIN(joiner.getNickname(), chaname), "");
+    }    
 }
 
 void Server::part(ServerMessage serverMessage)
@@ -351,24 +358,23 @@ void Server::names(ServerMessage serverMessage)
 
     // Outside of channels
     if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
-    {
-        // TODO: Fill 'all' with list of users in all channels
-        sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), "*", "all"), "");
-        sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), "*"), "");
         return;
-    }
 
     std::vector<std::string> chanames = split(serverMessage.getParams()[0], ",");
-    for (std::vector<std::string>::iterator it = chanames.begin(); it != chanames.end(); it++)
-    {
-        if (! channelExists(*it))
-            continue;
-        else if (_channels.find(*it) != _channels.end())
-        {
-            sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), *it, _channels.find(*it)->second.getUsersString()), "");
-            sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), *it), "");
-        }
-    }
+    if (chanames.size() == 0)
+        throw std::string(ERR_NOSUCHNICKCHAN(user.getNickname(), serverMessage.getParams()[0]));
+    if (chanames.size() > 1)
+        throw std::string(ERR_TOOMANYTARGETS(user.getNickname(), "NAMES"));
+    
+    const std::string chaname = chanames[0];
+    if (! channelExists(chaname))
+        throw std::string(ERR_NOSUCHCHANNEL(chaname));
+    
+    if (_channels.find(chaname)->second.isUserInChannel(user) == false)
+        throw std::string(ERR_NOTONCHANNEL(chaname));
+    
+    Channel& channel = _channels.find(chaname)->second;
+    sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chaname, channel.getUsersString()), "");
 }
 
 void    Server::rpl_list(User& user)
@@ -473,35 +479,35 @@ void Server::kick(ServerMessage serverMessage)
     sendSuccessMessage(kickedUser.getSocket(), KICK(user.getNickname(), chaname, kickedName), "");
 }
 
-/*
-
-    RPL_WHOREPLY (352) 
-  "<client> <channel> <username> <host> <server> <nick> <flags> :<hopcount> <realname>"
-Sent as a reply to the WHO command, this numeric gives information about the client with the nickname <nick>. Refer to RPL_WHOISUSER (311) for the meaning of the fields <username>, <host> and <realname>. <server> is the name of the server the client is connected to. If the WHO command was given a channel as the <mask> parameter, then the same channel MUST be returned in <channel>. Otherwise <channel> is an arbitrary channel the client is joined to or a literal asterisk character ('*', 0x2A) if no channel is returned. <hopcount> is the number of intermediate servers between the client issuing the WHO command and the client <nick>, it might be unreliable so clients SHOULD ignore it.
-
-<flags> contains the following characters, in this order:
-
-Away status: the letter H ('H', 0x48) to indicate that the user is here, or the letter G ('G', 0x47) to indicate that the user is gone.
-Optionally, a literal asterisk character ('*', 0x2A) to indicate that the user is a server operator.
-Optionally, the highest channel membership prefix that the client has in <channel>, if the client has one.
-Optionally, one or more user mode characters and other arbitrary server-specific flags.
-
-*/
 void Server::who(ServerMessage serverMessage)
 {
     // uncomment for evaluation
     //if (user.isLoggedIn() == false)
     //    throw std::string(ERR_NOTREGISTERED);
+    
+    if (serverMessage.getParams().size() != 1)
+        throw std::string(ERR_NEEDMOREPARAMS("WHO"));
+    
     User&   user = getUserBySocket(serverMessage.getSocket());
     Channel& channel = _channels.find(serverMessage.getParams()[0])->second;
     
-    if (! channelExists(serverMessage.getParams()[0]))
+    if (!channelExists(serverMessage.getParams()[0]))
         throw std::string(ERR_NOSUCHCHANNEL(serverMessage.getParams()[0]));
     if (channel.isUserInChannel(user) == false)
         throw std::string(ERR_NOTONCHANNEL(serverMessage.getParams()[0]));
-    
-    //sendSuccessMessage(user.getSocket(), RPL_WHOREPLY(user.getNickname(), channel.getName()), "");
-    //sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname()), "");
+
+    std::map<int, User*>::iterator it = channel.getUsers().begin();
+    for(; it != channel.getUsers().end(); it++)
+    {
+        User&   currUser = *it->second;
+        std::string flags = " H";
+        if (currUser.isOperator()) // operator in server
+            flags += "*";
+        if (channel.isOperator(currUser)) // operator in channel
+            flags += "@";
+        sendSuccessMessage(user.getSocket(), RPL_WHOREPLY(currUser.getNickname(), channel.getName(), currUser.getUsername(), flags), "");
+    }
+    sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname()), "");
 }
 
 void Server::mode(ServerMessage serverMessage)
@@ -554,16 +560,19 @@ void Server::mode(ServerMessage serverMessage)
         {
             channel.setInviteOnly(sign);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
         }
         else if (mode == 't')
         {
             channel.setTopicRestrict(sign);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
         }
         else if (mode == 'l' && sign == false)
         {
             channel.setMaxUsers(sign, 0);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
             return ;
         }
     }
@@ -576,6 +585,7 @@ void Server::mode(ServerMessage serverMessage)
         {
             channel.setPassword(sign, param);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
         else if (mode == 'l')
         {
@@ -586,6 +596,7 @@ void Server::mode(ServerMessage serverMessage)
                 throw std::string(ERR_NEEDMOREPARAMS("MODE"));
             channel.setMaxUsers(sign, maxUsers);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
         else if (mode == 'o')
         {
@@ -594,6 +605,7 @@ void Server::mode(ServerMessage serverMessage)
             else 
                 channel.removeOperator(channel.getUserByNickname(param));
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
     }
 }

@@ -82,10 +82,11 @@ void    Channel::usersDrop()
     // }
 }
 
-void    Channel::broadcast(std::string& msg)
+void	Channel::broadcastMessagetoChannel(std::string message, User& user)
 {
-    for (std::map<int, User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
-    {
-        sendAll(it->second->getSocket(), msg);
-    }
-}
+	for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
+	{
+		if (it->second->getSocket() != user.getSocket())
+			_server.sendSuccessMessage(it->second->getSocket(), message, "");
+	}
+};
