@@ -7,6 +7,8 @@
 #include "Exceptions.hpp"
 #include "Server.hpp"
 
+class Server;
+
 class Channel
 {
 private:
@@ -43,7 +45,17 @@ public:
 	const std::string&		getPassword(void) const { return _password; };
 	int 				getMaxUsers(void) const { return _maxUsers; };
 	User&               getUserByNickname(std::string nickname) { for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (it->second->getNickname() == nickname) return *(it->second); } throw ChannelUnableToFindUser(); };
-	std::string				getUsersString(void) { std::string users = ""; for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { std::string tmp = it->second->getNickname(); users += tmp + " "; } return users; };
+	std::string				getUsersString(void) 
+	{ 
+		std::string users = "";
+		for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) 
+		{ 
+			if (isOperator(*(it->second)))
+				users += "@";
+			users += it->second->getNickname() + " ";
+		}
+		return users; 
+	};
 	bool 				isInviteOnly(void) const { return _isInviteOnly; };
 	bool 				isInvited(std::string username) { for (std::vector<std::string>::iterator it = _invited.begin(); it != _invited.end(); it++) { if (*it == username) return true; } return false; };
 	bool 				isTopicRestrict(void) const { return _topicRestrict; };
@@ -62,36 +74,13 @@ public:
 	const std::string&	getTopic() const { return _topic; };
 	void				setTopic(const std::string& newtopic) { _topic = newtopic; };
 
-	std::string getModes(void) {
-		std::stringstream modeString;
-        modeString << "+";
-        if (_isInviteOnly)
-            modeString << "i";
-        if (_topicRestrict)
-            modeString << "t";
-        if (_hasPassword)
-            modeString << "k";
-        if (_userLimit)
-            modeString << "l";
-        
-        if (_userLimit)
-            modeString << " " << _maxUsers;
-        if (_hasPassword)
-            modeString << " " << _password;
-        
-        std::string tmp = modeString.str();
-        std::cout << tmp << std::endl;
-		if (tmp.length() == 1)
-            tmp = "";
-		
-		return tmp;
-	}
+	std::string 		getModes(void) { std::stringstream modeString; modeString << "+"; if (_isInviteOnly) modeString << "i"; if (_topicRestrict) modeString << "t"; if (_hasPassword) modeString << "k"; if (_userLimit) modeString << "l"; if (_userLimit) modeString << " " << _maxUsers; if (_hasPassword) modeString << " " << _password; std::string tmp = modeString.str(); if (tmp.length() == 1)     tmp = ""; return tmp; };
 
 	/*	API	*/
 	void	userAdd(User& user);
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
-	void	broadcast(std::string& msg);
+	void	broadcastMessagetoChannel(std::string message, User& user);
 };
 
 
