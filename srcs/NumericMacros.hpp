@@ -16,6 +16,7 @@
 #define RPL_CHANNELMODEIS(nickname, channel, modes)     (":" SERVER_NAME " 324 " + nickname + " " + channel + " " + modes + "\r\n")
 #define RPL_NOTOPIC(nickname, channel)                  (":" SERVER_NAME " 331 " + nickname + " " + channel + " :No topic is set\r\n")
 #define RPL_TOPIC(nickname, channel, topic)             (":" SERVER_NAME " 332 " + nickname + " " + channel + " :" + topic + "\r\n")
+
 // If we do the bonus, implement this: https://ircv3.net/specs/extensions/bot-mode
 #define RPL_WHOISBOT(nickname, bots_name)               (":" SERVER_NAME " 335 " + nickname + " " + bots_name + " :is a bot\r\n")
 #define RPL_INVITING(inviter, invitee, channel)         (":" SERVER_NAME " 341 " + inviter + " " + invitee + " " + channel + " :Inviting you to channel\r\n")
