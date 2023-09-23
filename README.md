@@ -5,14 +5,33 @@ Project done by:
 - [Grubben](https://github.com/Grubben)
 
 ## Table of Contents
-- [Introduction](#introduction)
+- [Description](#description)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Commands](#commands)
 
-## Introduction
+## Description
 This project is about creating an Internet Relay Chat (IRC) server. We learned the basic infrastructure of a client-server application, and how to implement it using the TCP protocol.
-To do this project we had to learn how sockets work, how event driven programming works, and how to use the select function. We also had to learn how numeric replies work, and how a client interprets them.
+To do this project we had to learn how sockets work, how event driven programming works, and how to use the select function with non-blocking file descriptors. We also had to learn how numeric replies work, and how a client interprets them.
+
+Here is an image from IBM docs that best represents how our server works:
+![alt text](https://www.ibm.com/docs/en/ssw_ibm_i_71/rzab6/rzab6508.gif) 
+
+Resuming the image:
+1. The server creates a socket and binds it to a port.
+2. The server sets the socket to non-blocking mode.
+3. The server listens for connections on the socket.
+4. The server creates a list of file descriptors to read from.
+5. The server adds the socket to the list.
+6. The server has select() on a loop, and waits for activity on the file descriptors.
+7. If a client connects, the server accepts the connection and adds the new file descriptor to the list.
+8. If a client sends a message, the server reads the message and sends a reply.
+9. If a client disconnects, the server removes the file descriptor from the list.
+10. If the server receives a command to shut down, it closes all the file descriptors and exits.
+
+FD_SET(), FD_CLR(), etc. are macros used to manipulate the list of file descriptors that select reads from. We add new connections to the list with FD_SET(), and remove them with FD_CLR(). FD_ISSET() is used to check if a file descriptor is in the list.
+
+This is basic server functionality that we had to do. The rest of the project was interaction with clients. For example, when a client connects, it sends a message to a server trying to negotiate capabilities. When capability negotiation is over, the client procceeds to send a NICK and a USER message. The client has been added to the database but not authenticated. The client can only use the server's commands upon entering the PASS command. Then the client receives a 001 numeric reply, which means that the client has been authenticated. The client can now use the server's commands.
 
 The client we chose to use is [HexChat](https://hexchat.github.io/), which is a free IRC client for Windows and Unix-like operating systems.
 
