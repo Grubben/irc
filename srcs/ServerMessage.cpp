@@ -4,9 +4,16 @@ ServerMessage::ServerMessage()
 {
 }
 
+void toUpper(std::string &str)
+{
+    for (int i = 0; i < static_cast<int>(str.size()); i++)
+        str[i] = toupper(str[i]);
+}
+
 ServerMessage::ServerMessage(std::vector<std::string> commandVector, int socket)
 {
     _command = commandVector[0];
+    toUpper(_command);
     for (int i = 1; i < static_cast<int>(commandVector.size()); i++)
         _params.push_back(commandVector[i]);
     _socket = socket;
