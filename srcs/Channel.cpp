@@ -76,7 +76,11 @@ int    Channel::userRemove(User& user)
     if (search != _chanusers.end())
         _chanusers.erase(search);
 
-    // std::cout << "Channel with users: " << _chanusers.size() << std::endl;
+    if (isInvited(user.getNickname()))
+        _invited.erase(std::find(_invited.begin(), _invited.end(), user.getNickname()));
+
+    if (isOperator(user))
+        _operators.erase(std::find(_operators.begin(), _operators.end(), &user));
 
     return _chanusers.size();
 }

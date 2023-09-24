@@ -273,6 +273,12 @@ void Server::part(ServerMessage serverMessage)
     User&   parter = getUserBySocket(serverMessage.getSocket());
     std::vector<std::string> channelsLeave = split(serverMessage.getParams()[0], ",");
 
+    std::string reason;
+    if (serverMessage.getParams().size() > 1)
+        reason = serverMessage.getParams()[1];
+    else
+        reason = "<Default Reason"; //TODO: better default reason?
+
     for (std::vector<std::string>::iterator it = channelsLeave.begin(); it != channelsLeave.end(); it++ )
     {
         if (! channelExists(*it))
@@ -281,8 +287,7 @@ void Server::part(ServerMessage serverMessage)
             throw std::string(ERR_NOTONCHANNEL(*it));
         else
         {
-            // Broadcast message to all users in channel that this user left channel
-            sendSuccessMessage(parter.getSocket(), PART(parter.getNickname(), *it, ""), "");
+            sendSuccessMessage(parter.getSocket(), PART(parter.getNickname(), *it, reason), "");
             userRmFromChannel(parter, *it);
         }
     }
