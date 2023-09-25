@@ -2,7 +2,7 @@ NAME = ircserv
 
 CXX = c++
 
-CXXFLAGS = -Wall -Werror -Wextra -g -std=c++98 
+CXXFLAGS = -Wall -Werror -Wextra -g -fstandalone-debug
 
 # SRCS = srcs/main.cpp srcs/ServerEnvironment.cpp srcs/Server.cpp srcs/Channel.cpp srcs/User.cpp srcs/Exceptions.cpp
 SRCS = $(wildcard srcs/*.cpp)

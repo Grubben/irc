@@ -15,6 +15,7 @@ std::string                 trim(std::string str);
 std::string                 trim(std::string str, std::string undesired);
 std::string                 removeCharacterFromString(std::string str, char c);
 std::vector<std::string>    split(const std::string input, const std::string delimiter);
+std::string                 toUpper(std::string &str);
 
 template <typename T>
 std::string cont2str(T& svec)

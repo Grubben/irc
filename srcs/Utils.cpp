@@ -86,3 +86,11 @@ int sendAll(int socket, std::string msg)
     }
     return 0;
 }
+
+std::string toUpper(std::string &str)
+{
+    std::string tmp = "";
+    for (int i = 0; i < static_cast<int>(str.size()); i++)
+        tmp += toupper(str[i]);
+    return (tmp);
+}

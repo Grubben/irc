@@ -46,7 +46,7 @@ extern bool g_isRunning;
 
 
 #define SERVER_HOSTNAME "localhost" // ou 127.0.0.1?
-#define SERVER_NAME "ONossoIRC" // por mudar
+#define SERVER_NAME "OMelhorIRC" // por mudar
 #define OPERATOR_PASSWORD "1234"
 
 // NOVO: retirar o que não é necessário e mudar valores

@@ -15,7 +15,7 @@ void Server::execute(std::list<ServerMessage> messageList)
         }
         catch(const std::string& error)
         {
-            std::cout << error << std::cout;
+            std::cout << error << std::endl;
             sendErrorMessage(it->getSocket(), error);
         }
         catch(std::exception& e)
@@ -225,27 +225,7 @@ void Server::oper(ServerMessage serverMessage)
 
 void Server::quit(ServerMessage serverMessage)
 {
-    //std::map<std::string, Channel>::iterator chan = _channels.begin();
-    //std::string quitNick = _users[serverMessage.getSocket()].getNickname();
-    //for (; chan != _channels.end(); chan++)
-    //{
-    //    chan->second.userRemove(_users[serverMessage.getSocket()]);
-    //}
-    //sendSuccessMessage(serverMessage.getSocket(), QUIT(quitNick), "");
-
-    User& user = getUserBySocket(serverMessage.getSocket());
-
-    std::map<std::string, Channel>::iterator chan = _channels.begin();
-    for (; chan != _channels.end(); chan++)
-    {
-        if (chan->second.isUserInChannel(user))
-        {
-            chan->second.broadcastMessagetoChannel(QUIT(_users[serverMessage.getSocket()].getNickname()), user);
-            userRmFromChannel(user, chan->first);
-        }
-    }
-
-    _users.erase(serverMessage.getSocket());
+    (void) serverMessage;
 }
 
 void Server::join(ServerMessage serverMessage)
@@ -359,11 +339,17 @@ void Server::topic(ServerMessage serverMessage)
 
     if (serverMessage.getParams().size() == 1)
     {
-        const std::string&    topic = _channels.find(chaname)->second.getTopic();
+        const std::string& topic = _channels.find(chaname)->second.getTopic();
         if (topic == "")
+        {
             sendSuccessMessage(user.getSocket(), RPL_NOTOPIC(user.getNickname(), chaname), "");
+            channel.broadcastMessagetoChannel(RPL_NOTOPIC(user.getNickname(), chaname), user);
+        }
         else
+        {
             sendSuccessMessage(user.getSocket(), RPL_TOPIC(user.getNickname(), chaname, topic), "");
+            channel.broadcastMessagetoChannel(RPL_TOPIC(user.getNickname(), chaname, topic), user);
+        }
     }
     else
     {
@@ -376,9 +362,15 @@ void Server::topic(ServerMessage serverMessage)
 
         //Broadcast change of topic to all users in channel
         if (newtopic == "")
+        {
+            sendSuccessMessage(user.getSocket(), RPL_NOTOPIC(user.getNickname(), chaname), "");
             channel.broadcastMessagetoChannel(RPL_NOTOPIC(user.getNickname(), chaname), user);
+        }
         else
+        {
+            sendSuccessMessage(user.getSocket(), RPL_TOPIC(user.getNickname(), chaname, newtopic), "");
             channel.broadcastMessagetoChannel(RPL_TOPIC(user.getNickname(), chaname, newtopic), user);
+        }
     }
 }
 

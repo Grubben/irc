@@ -157,9 +157,9 @@ void Server::dataReceived(int i)
         if (len == 0)
             std::cout << "Client has left the network. fd: " << i << std::endl;
         message[len] = 0;
-        close(i);
+        //close(i);
         FD_CLR(i, &_masterFDs);
-        //this->userQuit(i);
+        this->userQuit(i);
     }
     else
     {
@@ -174,17 +174,35 @@ void Server::dataReceived(int i)
 
 }
 
-// void    Server::userQuit(const int socket)
-// {
-//     std::map<int, User>::iterator search = _users.find(socket);
-//     if (search == _users.end())
-//         return ;
-//     std::cout << "Server is removing user with fd: " << socket << std::endl;
-//     close(search->first);
-//     _users.erase(search);
+void    Server::userQuit(const int socket)
+{
+    std::cout << "Server is removing user with fd: " << socket << std::endl;
+    User& user = getUserBySocket(socket);
+    
+    std::vector<std::string> channelNames;
+    std::map<std::string, Channel>::iterator s_it = _channels.begin();
+    while (s_it != _channels.end())
+    {
+        if (s_it->second.isUserInChannel(user))
+        {
+            s_it->second.broadcastMessagetoChannel(QUIT(_users[socket].getNickname()), user);
+            channelNames.push_back(s_it->first);
+        }
+        s_it++;
+    }
 
-//     std::cout << "users size: " << _users.size() << std::endl;
-// }
+    std::cout << "Removing user from channels" << std::endl;
+
+    for (std::vector<std::string>::iterator it = channelNames.begin(); it != channelNames.end(); it++)
+    {
+        std::cout << "Removing user from channel: " << *it << std::endl;
+        userRmFromChannel(user, *it);
+    }
+
+    close(user.getSocket());
+    _users.erase(user.getSocket());
+    std::cout << "users size: " << _users.size() << std::endl;
+}
 
 void    Server::userCreate(int socket)
 {
