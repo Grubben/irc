@@ -244,6 +244,8 @@ void Server::quit(ServerMessage serverMessage)
             userRmFromChannel(user, chan->first);
         }
     }
+
+    _users.erase(serverMessage.getSocket());
 }
 
 void Server::join(ServerMessage serverMessage)

@@ -151,7 +151,7 @@ void Server::acceptConnection(int& fdMax)
 void Server::dataReceived(int i)
 {
     char message[1024] = "";
-    int len;;
+    int len;
     if ((len = recv(i, message, sizeof(message) - 1, 0) <= 0))
     {
         if (len == 0)
@@ -159,7 +159,7 @@ void Server::dataReceived(int i)
         message[len] = 0;
         close(i);
         FD_CLR(i, &_masterFDs);
-        this->userQuit(i);
+        //this->userQuit(i);
     }
     else
     {
@@ -174,17 +174,17 @@ void Server::dataReceived(int i)
 
 }
 
-void    Server::userQuit(const int socket)
-{
-    std::map<int, User>::iterator search = _users.find(socket);
-    if (search == _users.end())
-        return ;
-    std::cout << "Server is removing user with fd: " << socket << std::endl;
-    close(search->first);
-    _users.erase(search);
+// void    Server::userQuit(const int socket)
+// {
+//     std::map<int, User>::iterator search = _users.find(socket);
+//     if (search == _users.end())
+//         return ;
+//     std::cout << "Server is removing user with fd: " << socket << std::endl;
+//     close(search->first);
+//     _users.erase(search);
 
-    std::cout << "users size: " << _users.size() << std::endl;
-}
+//     std::cout << "users size: " << _users.size() << std::endl;
+// }
 
 void    Server::userCreate(int socket)
 {
