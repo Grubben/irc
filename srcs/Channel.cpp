@@ -49,6 +49,22 @@ Channel&	Channel::operator= (const Channel& copy)
 	return (*this);
 }
 
+std::string Channel::getUsersString(void)
+{
+    std::set<std::string>   nodup;
+
+    std::string users = "";
+    for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++)
+        nodup.insert(it->second->getNickname());
+    for (std::vector<User*>::iterator it = _operators.begin(); it != _operators.end(); it++)
+    {
+        nodup.erase((*it)->getNickname());
+        nodup.insert("@" + (*it)->getNickname());
+    }
+
+    return cont2str<std::set<std::string> >(nodup);
+};
+
 void    Channel::userAdd(User& user)
 {
     _chanusers.insert(std::pair<int, User*>(user.getSocket(), &user));
@@ -60,7 +76,11 @@ int    Channel::userRemove(User& user)
     if (search != _chanusers.end())
         _chanusers.erase(search);
 
-    // std::cout << "Channel with users: " << _chanusers.size() << std::endl;
+    if (isInvited(user.getNickname()))
+        _invited.erase(std::find(_invited.begin(), _invited.end(), user.getNickname()));
+
+    if (isOperator(user))
+        _operators.erase(std::find(_operators.begin(), _operators.end(), &user));
 
     return _chanusers.size();
 }

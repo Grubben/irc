@@ -305,6 +305,12 @@ void Server::part(ServerMessage serverMessage)
  
     std::vector<std::string> channelsLeave = split(serverMessage.getParams()[0], ",");
 
+    std::string reason;
+    if (serverMessage.getParams().size() > 1)
+        reason = serverMessage.getParams()[1];
+    else
+        reason = "<Default Reason"; //TODO: better default reason?
+
     for (std::vector<std::string>::iterator it = channelsLeave.begin(); it != channelsLeave.end(); it++ )
     {
         if (! channelExists(*it))
@@ -313,8 +319,7 @@ void Server::part(ServerMessage serverMessage)
             throw std::string(ERR_NOTONCHANNEL(*it));
         else
         {
-            // Broadcast message to all users in channel that this user left channel
-            sendSuccessMessage(parter.getSocket(), PART(parter.getNickname(), *it, ""), "");
+            sendSuccessMessage(parter.getSocket(), PART(parter.getNickname(), *it, reason), "");
             userRmFromChannel(parter, *it);
         }
     }
@@ -322,26 +327,25 @@ void Server::part(ServerMessage serverMessage)
 
 void Server::topic(ServerMessage serverMessage)
 {
-    // uncomment for evaluation
-    //if (user.isLoggedIn() == false)
-    //    throw std::string(ERR_NOTREGISTERED);
-    
-
-    // Missing:
-    //   ERR_CHANOPRIVSNEEDED -> Mode +t
-
-    // Need to implement broadcast function and use it for this command when topic is changed
+    User&   user = getUserBySocket(serverMessage.getSocket());
+    const std::string chaname = serverMessage.getParams()[0];
+    Channel& channel = _channels.find(chaname)->second;
 
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("TOPIC"));
 
-    const std::string chaname = serverMessage.getParams()[0];
     if (! channelExists(chaname))
         throw std::string(ERR_NOSUCHCHANNEL(chaname));
     
-    User&   user = getUserBySocket(serverMessage.getSocket());
-    if (! _channels.find(chaname)->second.isUserInChannel(user))
+    if (! channel.isUserInChannel(user))
         throw std::string(ERR_NOTONCHANNEL(chaname));
+
+    // Privilege checking
+    if (channel.isTopicRestrict() == true)
+    {
+        if (channel.isOperator(user) == false)
+            throw std::string(ERR_CHANOPRIVSNEEDED(user.getNickname(), chaname));
+    }
 
     if (serverMessage.getParams().size() == 1)
     {
@@ -351,20 +355,28 @@ void Server::topic(ServerMessage serverMessage)
         else
             sendSuccessMessage(user.getSocket(), RPL_TOPIC(user.getNickname(), chaname, topic), "");
     }
-    else {
-    // didnt touch this, if topic changed then it should be broadcasted to all users in channel
-    const std::string newtopic = serverMessage.getParams()[1].substr(1);
-    _channels.find(chaname)->second.setTopic(newtopic);
+    else
+    {
+        std::string newtopic = "";
+        for (size_t i = 1; i < serverMessage.getParams().size(); i++)
+            newtopic += serverMessage.getParams()[i] + " ";
+        newtopic.erase(0,1); // removing the ":"
+        
+        channel.setTopic(newtopic);
 
+        //Broadcast change of topic to all users in channel
+        if (newtopic == "")
+            channel.broadcast(RPL_NOTOPIC(user.getNickname(), chaname));
+        else
+            channel.broadcast(RPL_TOPIC(user.getNickname(), chaname, newtopic));
     }
-    //TODO: check permissions
-    //TODO: check serverMessage.getParams()[1][0] is a ":"
-
 }
 
 void Server::names(ServerMessage serverMessage)
 {
     User&   user = getUserBySocket(serverMessage.getSocket());
+    const std::string chaname = serverMessage.getParams()[0];
+    Channel& channel = _channels.find(chaname)->second;
 
     // uncomment for evaluation
     //if (user.isLoggedIn() == false)
@@ -373,7 +385,6 @@ void Server::names(ServerMessage serverMessage)
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("NAMES"));
 
-    // Outside of channels
     if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
         return;
 

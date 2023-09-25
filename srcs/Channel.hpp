@@ -4,6 +4,7 @@
 #pragma once
 #include <iostream>
 #include <list>
+#include <set>
 #include "Exceptions.hpp"
 #include "Server.hpp"
 
@@ -45,7 +46,8 @@ public:
 	const std::string&		getPassword(void) const { return _password; };
 	int 				getMaxUsers(void) const { return _maxUsers; };
 	User&               getUserByNickname(std::string nickname) { for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (it->second->getNickname() == nickname) return *(it->second); } throw ChannelUnableToFindUser(); };
-	std::string				getUsersString(void) { std::string users = "";for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (isOperator(*(it->second)))users += "@";users += it->second->getNickname() + " ";}return users; };
+	std::string				getUsersString(void);
+	//std::string				getUsersString(void) { std::string users = "";for (std::map<int,User*>::iterator it = _chanusers.begin(); it != _chanusers.end(); it++) { if (isOperator(*(it->second)))users += "@";users += it->second->getNickname() + " ";}return users; };
 	bool 				isInviteOnly(void) const { return _isInviteOnly; };
 	bool 				isInvited(User& user) const { for (std::vector<User*>::const_iterator it = _invited.begin(); it != _invited.end(); it++) { if ((*it)->getSocket() == user.getSocket()) return true; } return false; };
 	bool 				isTopicRestrict(void) const { return _topicRestrict; };
@@ -70,6 +72,7 @@ public:
 	void	userAdd(User& user);
 	int		userRemove(User& user);
 	bool	isUserInChannel(User& user);
+ 
 	void	broadcastMessagetoChannel(std::string message, User& user);
 };
 
