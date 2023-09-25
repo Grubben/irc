@@ -7,30 +7,20 @@ void Server::execute(std::list<ServerMessage> messageList)
     for (; it != messageList.end() && _stop == false; it++)
 	{
 		std::string command = it->getCommand();
+        it->outputPrompt();
 		try
         {
             if (_commandMap.find(command) != _commandMap.end())
-            {
-                std::cout << "Received command: " << command << std::endl;
-                it->outputPrompt();
 			    (this->*_commandMap[command])(*it);
-            }
-            else
-            {
-                it->outputPrompt();
-                std::cout << "Command not found" << std::endl; // needs to send numeric?
-            }
         }
         catch(std::string error)
         {
             std::cout << error << std::cout;
             sendErrorMessage(it->getSocket(), error);
-            it->outputPrompt();
         }
         catch(std::exception& e)
         {
             std::cout << e.what() << std::endl;
-            it->outputPrompt();
         }
 	}
 }
@@ -55,24 +45,19 @@ void Server::sendSuccessMessage(int socket, std::string numeric, std::string ext
         sendAll(socket, extraMessage);
 }
 
-// Segfaulting if user inputs password after being logged in
 void Server::pass(ServerMessage serverMessage)
 {
     User& user = _users[serverMessage.getSocket()];
     
-    // Already logged in
     if (user.isLoggedIn())
         throw std::string(ERR_ALREADYREGISTRED);
 
-    // No password given
     if (serverMessage.getParams().empty())
         throw std::string(ERR_NEEDMOREPARAMS("PASS"));
 
-    // Password mismatch
     if (serverMessage.getParams()[0] != _password)
         throw std::string(ERR_PASSWDMISMATCH);
 
-    // Invalid Credentials
     if (user.getNickname() == "")
         throw std::string(ERR_NOSUCHNICK(user.getNickname()));
     else if (user.getUsername() == "")
@@ -80,6 +65,7 @@ void Server::pass(ServerMessage serverMessage)
     
     user.setIsLoggedIn(true);
     sendSuccessMessage(user.getSocket(), RPL_WELCOME(user.getNickname()), ""); // TODO: add extra message
+    sendSuccessMessage(user.getSocket(), RPL_YOURHOST(user.getNickname()), "");
     std::cout << YELLOW << "> password verified <" << RESET << std::endl;
 }
 
@@ -88,17 +74,12 @@ void Server::nick(ServerMessage serverMessage)
     //TODO: send numeric macro to change nick
     User& user = _users[serverMessage.getSocket()];
 
-
     if (serverMessage.getParams().empty())
         throw std::string(ERR_NONICKNAMEGIVEN);
 
     std::string newNick = serverMessage.getParams()[0];
     if(newNick.find_first_not_of(ACCEPTED_CHARS_NAME) != std::string::npos)
-    {
-        // I can log in using Hexchat but not using nc, it quits here. error might come from find_first_not_of??
-        // Nao funciona no meu computador de casa, mas na escola acho que sim wtf
         throw std::string(ERR_ERRONEUSNICKNAME(newNick, "Invalid character(s) used"));
-    }
 
     std::map<int, User>::iterator it = _users.begin();
     for (; it != _users.end(); it++)
@@ -107,11 +88,25 @@ void Server::nick(ServerMessage serverMessage)
             throw std::string(ERR_NICKNAMEINUSE(newNick));
     }
     
-    // With this is very buggy, is it really neccessary?
-    //std::string oldNick = user.getNickname();
-    //if (oldNick != "" && user.isLoggedIn())
-    //    sendSuccessMessage(user.getSocket(), ":" + oldNick + " NICK :" + newNick, "");
     user.setNickname(newNick);
+    sendSuccessMessage(user.getSocket(), RPL_CHANGENICK(user.getNickname()), "");
+    sendSuccessMessage(user.getSocket(), NICK(user.getNickname(), newNick), "");
+
+    // if user is at least in 1 channel, change names in all channels
+    if (this->_channels.size() > 0)
+    {
+        std::map<std::string, Channel>::iterator chan = _channels.begin();
+        for (; chan != _channels.end(); chan++)
+        {
+            if (chan->second.isUserInChannel(user))
+            {
+                sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chan->first, chan->second.getUsersString()), "");
+                chan->second.broadcastMessagetoChannel(RPL_NAMREPLY(user.getNickname(), chan->first, chan->second.getUsersString()), user);
+                chan->second.broadcastMessagetoChannel(RPL_ENDOFNAMES(user.getNickname(), chan->first), user);
+            }
+        }
+    }
+
     std::cout << GREEN << "new nickname: " << user.getNickname() << RESET << std::endl;
 }
 
@@ -144,6 +139,10 @@ void Server::privmsg(ServerMessage serverMessage)
 
     std::vector<std::string> receivers = split(serverMessage.getParams()[0], ",");
     User& sender = _users[serverMessage.getSocket()];
+
+    //uncomment for evaluation
+    //if (sender.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
 
     std::string message = "";
     for (size_t i = 1; i < serverMessage.getParams().size(); i++)
@@ -199,9 +198,13 @@ void Server::privmsg(ServerMessage serverMessage)
 */
 void Server::oper(ServerMessage serverMessage)
 {
+    //uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
+
     if (serverMessage.getParams().size() != 2)
         throw ERR_NEEDMOREPARAMS("OPER");
-
+    
     std::map<int, User>::iterator it = _users.begin();
     for (; it != _users.end(); it++)
     {
@@ -238,24 +241,41 @@ void Server::quit(ServerMessage serverMessage)
 /*  CHANNEL OPERATIONS  */
 void Server::join(ServerMessage serverMessage)
 {
-    // Missing:
-        // ERR_INVITEONLYCHAN -> Mode +i
-        // ERR_BADCHANNELKEY  -> Mode +k
-        // ERR_CHANNELISFULL  -> Mode +l
+   //uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
 
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("JOIN"));
 
     User&   joiner = getUserBySocket(serverMessage.getSocket());
-    // if (joiner.isLoggedIn() == false) //take comment off to submit project
-    //     return;
-
     const std::string chaname = serverMessage.getParams()[0];
     if (chaname.find_first_of("&#") != 0)
         throw std::string(ERR_NOSUCHCHANNEL(chaname));
 
-    userAddToChannel(joiner, chaname);
+    std::map<std::string,Channel>::iterator chan = _channels.find(chaname);
+    if (chan == _channels.end())
+        _channels.insert(std::pair<std::string,Channel>(chaname, Channel(*this, chaname)));
+    else
+    {
+        Channel& channel = _channels.find(chaname)->second;
+        if (channel.isInviteOnly() && channel.isInvited(joiner) == false)
+        throw std::string(ERR_INVITEONLYCHAN(joiner.getNickname(), chaname));
+    
+        if (channel.hasPassword() && serverMessage.getParams().size() > 1 && channel.getPassword() != serverMessage.getParams()[1])
+            throw std::string(ERR_BADCHANNELKEY(joiner.getNickname(), chaname));
+
+        if (channel.hasUserLimit() && static_cast<int>(channel.getUsers().size()) >= channel.getMaxUsers())
+            throw std::string(ERR_CHANNELISFULL(joiner.getNickname(), chaname));
+
+        if (channel.isInviteOnly() && channel.isInvited(joiner) == true)
+        channel.removeInvited(joiner);
+    }
     Channel& channel = _channels.find(chaname)->second;
+
+    joiner.channelJoin(channel);
+    channel.userAdd(joiner);
+
     sendSuccessMessage(joiner.getSocket(), JOIN(joiner.getNickname(), chaname), "");
     sendSuccessMessage(joiner.getSocket(), RPL_TOPIC(joiner.getNickname() , chaname, channel.getTopic()), "");    
     sendSuccessMessage(joiner.getSocket(), RPL_NAMREPLY(joiner.getNickname(), chaname, channel.getUsersString()), "");
@@ -266,11 +286,23 @@ void Server::join(ServerMessage serverMessage)
         sendSuccessMessage(joiner.getSocket(), MODE(chaname, channel.getModes()), "");
         sendSuccessMessage(joiner.getSocket(), MODE(chaname, "+o " + joiner.getNickname()), "");
     }
+    // broadcast to all in channel that user joined
+    std::map<int, User*>::iterator it = channel.getUsers().begin();
+    for (; it != channel.getUsers().end(); it++)
+    {
+        if (it->first != joiner.getSocket())
+            sendSuccessMessage(it->first, JOIN(joiner.getNickname(), chaname), "");
+    }    
 }
 
 void Server::part(ServerMessage serverMessage)
 {
     User&   parter = getUserBySocket(serverMessage.getSocket());
+    
+    // uncomment for evaluation
+    //if (parter.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
+ 
     std::vector<std::string> channelsLeave = split(serverMessage.getParams()[0], ",");
 
     std::string reason;
@@ -346,22 +378,30 @@ void Server::names(ServerMessage serverMessage)
     const std::string chaname = serverMessage.getParams()[0];
     Channel& channel = _channels.find(chaname)->second;
 
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
+
     if (serverMessage.getParams().size() < 1)
         throw std::string(ERR_NEEDMOREPARAMS("NAMES"));
 
-    //TODO: find a way to know what name of server is!
-    // Outside of channels
-    // if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
-    // {
-    //     // TODO: Fill 'all' with list of users in all channels
-    //     sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), "*", "all"), "");
-    //     sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), "*"), "");
-    //     return;
-    // }
+    if (serverMessage.getParams().size() && serverMessage.getParams()[0] == "IRC")
+        return;
 
+    std::vector<std::string> chanames = split(serverMessage.getParams()[0], ",");
+    if (chanames.size() == 0)
+        throw std::string(ERR_NOSUCHNICKCHAN(user.getNickname(), serverMessage.getParams()[0]));
+    if (chanames.size() > 1)
+        throw std::string(ERR_TOOMANYTARGETS(user.getNickname(), "NAMES"));
+    
+    const std::string chaname = chanames[0];
     if (! channelExists(chaname))
         throw std::string(ERR_NOSUCHCHANNEL(chaname));
-
+    
+    if (_channels.find(chaname)->second.isUserInChannel(user) == false)
+        throw std::string(ERR_NOTONCHANNEL(chaname));
+    
+    Channel& channel = _channels.find(chaname)->second;
     sendSuccessMessage(user.getSocket(), RPL_NAMREPLY(user.getNickname(), chaname, channel.getUsersString()), "");
     sendSuccessMessage(user.getSocket(), RPL_ENDOFNAMES(user.getNickname(), chaname), "");
 }
@@ -370,7 +410,6 @@ void    Server::rpl_list(User& user)
 {
     for (std::map<std::string, Channel>::iterator it = _channels.begin(); it != _channels.end(); it++)
     {
-
         std::stringstream itos;
         itos << it->second.getUsers().size();
         std::string clientCount = itos.str();
@@ -381,7 +420,9 @@ void    Server::rpl_list(User& user)
 
 void Server::list(ServerMessage serverMessage)
 {
-    std::cout << "list command" << std::endl;
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
     User&   user = getUserBySocket(serverMessage.getSocket());
     sendSuccessMessage(user.getSocket(), RPL_LISTSTART(user.getNickname()), "");
     rpl_list(user);
@@ -390,43 +431,52 @@ void Server::list(ServerMessage serverMessage)
 
 void Server::invite(ServerMessage serverMessage)
 {
-
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
     if (serverMessage.getParams().size() < 2)
         throw std::string(ERR_NEEDMOREPARAMS("INVITE"));
 
     User&   user = getUserBySocket(serverMessage.getSocket());
+    
     const std::string invited = serverMessage.getParams()[0];
     const std::string chaname = serverMessage.getParams()[1];
+
+    if (!channelExists(chaname))
+        throw std::string(ERR_NOSUCHCHANNEL(chaname));
     
-    //TODO: check permissions
-    
+    Channel& channel = _channels.find(chaname)->second;
     std::map<int, User>::iterator it = _users.begin();
     for (; it != _users.end(); it++)
     {
         if (it->second.getNickname() == invited)
-        {
             break;
-        }
     }
 
     if (it == _users.end() || it->second.isLoggedIn() == false)
         throw std::string(ERR_NOSUCHNICK(invited));
 
-    if (_channels.find(chaname)->second.isUserInChannel(it->second))
+    if (channel.isUserInChannel(user) == false)
+        throw std::string(ERR_NOTONCHANNEL(chaname));
+
+    User&   invitedUser = it->second;
+    if (channel.isUserInChannel(invitedUser))
         throw std::string(ERR_USERONCHANNEL(invited, chaname));
 
+    if (channel.isInviteOnly())
+        channel.addInvited(invitedUser);
     sendSuccessMessage(user.getSocket(), RPL_INVITING(user.getNickname(), invited, chaname), "");
     sendSuccessMessage(it->second.getSocket(), INVITE(user.getNickname(), invited, chaname), "");
 }
 
 void Server::kick(ServerMessage serverMessage)
 {
-    std::cout << "kick command" << std::endl;
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
 
     if (serverMessage.getParams().size() < 2)
         throw std::string(ERR_NEEDMOREPARAMS("KICK"));
-
-    // Implement modes and verify if user has kick pernmissions and if yes then kick
 
     const std::string chaname = serverMessage.getParams()[0];
     const std::string kickedName = serverMessage.getParams()[1];
@@ -441,39 +491,60 @@ void Server::kick(ServerMessage serverMessage)
     if (! channelExists(chaname))
         throw std::string(ERR_NOSUCHCHANNEL(chaname));
 
-    for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
-    {
-        if (it->second.getNickname() == kickedName)
-        {
-            if  (_channels.find(chaname)->second.isUserInChannel(it->second) == false)
-                throw std::string(ERR_NOTONCHANNEL(chaname));
-            userRmFromChannel(it->second, chaname);
-            sendSuccessMessage(serverMessage.getSocket(), PART(kickedName, chaname, reason), "");
-            sendSuccessMessage(it->second.getSocket(), PART(kickedName, chaname, reason), "");
-            break;
-        }
-    }
-
-    throw std::string(ERR_NOSUCHNICK(kickedName));
+    Channel& channel = _channels.find(chaname)->second;
+    User&   user = getUserBySocket(serverMessage.getSocket());
+    if (channel.isOperator(user) == false)
+        throw std::string(ERR_CHANOPRIVSNEEDED(user.getNickname(), chaname));
+    
+    User& kickedUser = channel.getUserByNickname(kickedName);
+    if  (channel.isUserInChannel(kickedUser) == false)
+        throw std::string(ERR_NOTONCHANNEL(chaname));
+    userRmFromChannel(kickedUser, chaname);
+    if (channel.isInvited(kickedUser))
+        channel.removeInvited(kickedUser);
+    if (channel.getUsers().size() == 0)
+        _channels.erase(chaname);
+    sendSuccessMessage(user.getSocket(), KICK(user.getNickname(), chaname, kickedUser.getNickname(), reason), "");
+    sendSuccessMessage(kickedUser.getSocket(), KICK(user.getNickname(), chaname, kickedName, reason), "");
+    channel.broadcastMessagetoChannel(KICK(user.getNickname(), chaname, kickedUser.getNickname(), reason), user);
 }
 
-// This is wrong but it might look something like this
 void Server::who(ServerMessage serverMessage)
 {
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
+    
+    if (serverMessage.getParams().size() != 1)
+        throw std::string(ERR_NEEDMOREPARAMS("WHO"));
+    
     User&   user = getUserBySocket(serverMessage.getSocket());
     Channel& channel = _channels.find(serverMessage.getParams()[0])->second;
     
-    if (! channelExists(serverMessage.getParams()[0]))
+    if (!channelExists(serverMessage.getParams()[0]))
         throw std::string(ERR_NOSUCHCHANNEL(serverMessage.getParams()[0]));
     if (channel.isUserInChannel(user) == false)
         throw std::string(ERR_NOTONCHANNEL(serverMessage.getParams()[0]));
-    
-    sendSuccessMessage(user.getSocket(), RPL_WHOSPCRPL(user.getNickname(), channel.getName()), "");
-    sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname()), "");
+
+    std::map<int, User*>::iterator it = channel.getUsers().begin();
+    for(; it != channel.getUsers().end(); it++)
+    {
+        User&   currUser = *it->second;
+        std::string flags = " H";
+        if (currUser.isOperator()) // operator in server
+            flags += "*";
+        if (channel.isOperator(currUser)) // operator in channel
+            flags += "@";
+        sendSuccessMessage(user.getSocket(), RPL_WHOREPLY(currUser.getNickname(), channel.getName(), currUser.getUsername(), flags), "");
+    }
+    sendSuccessMessage(user.getSocket(), RPL_ENDOFWHO(user.getNickname(), channel.getName()), "");
 }
 
 void Server::mode(ServerMessage serverMessage)
 {
+    // uncomment for evaluation
+    //if (user.isLoggedIn() == false)
+    //    throw std::string(ERR_NOTREGISTERED);
     if (serverMessage.getParams().size() == 1)
     {
         const std::string chaname = serverMessage.getParams()[0];
@@ -481,7 +552,7 @@ void Server::mode(ServerMessage serverMessage)
             throw std::string(ERR_NOSUCHCHANNEL(chaname));
         
         Channel& channel = _channels.find(chaname)->second;
-        sendSuccessMessage(serverMessage.getSocket(), RPL_CHANNELMODEIS(_users[serverMessage.getSocket()].getNickname(), chaname, channel.getModes()), ""); //getModes()
+        sendSuccessMessage(serverMessage.getSocket(), RPL_CHANNELMODEIS(_users[serverMessage.getSocket()].getNickname(), chaname, channel.getModes()), "");
         return ;
     }
     else if (serverMessage.getParams().size() < 2)
@@ -519,16 +590,19 @@ void Server::mode(ServerMessage serverMessage)
         {
             channel.setInviteOnly(sign);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
         }
         else if (mode == 't')
         {
             channel.setTopicRestrict(sign);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
         }
         else if (mode == 'l' && sign == false)
         {
             channel.setMaxUsers(sign, 0);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes), user);
             return ;
         }
     }
@@ -541,14 +615,18 @@ void Server::mode(ServerMessage serverMessage)
         {
             channel.setPassword(sign, param);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
         else if (mode == 'l')
         {
             int maxUsers = std::atoi(param.c_str());
             if (maxUsers > 5000 || maxUsers < 0)
                 throw std::string(ERR_NEEDMOREPARAMS("MODE"));
+            if (maxUsers < static_cast<int>(channel.getUsers().size()))
+                throw std::string(ERR_NEEDMOREPARAMS("MODE"));
             channel.setMaxUsers(sign, maxUsers);
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
         else if (mode == 'o')
         {
@@ -557,6 +635,7 @@ void Server::mode(ServerMessage serverMessage)
             else 
                 channel.removeOperator(channel.getUserByNickname(param));
             sendSuccessMessage(user.getSocket(), OP_MODE(user.getNickname(), chaname, modes + " " + param), "");
+            channel.broadcastMessagetoChannel(OP_MODE(user.getNickname(), chaname, modes + " " + param), user);
         }
     }
 }
