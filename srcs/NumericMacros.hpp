@@ -31,7 +31,7 @@
 #define ERR_TOOMANYTARGETS(nickname, command)           (":" SERVER_NAME " 407 " + nickname + " " + command + " :Too many recipients\r\n")
 #define ERR_NONICKNAMEGIVEN                             (":" SERVER_NAME " 431 :No nickname given\r\n")
 #define ERR_ERRONEUSNICKNAME(nickname, reason)          (":" SERVER_NAME " 432 " + nickname + " :" + reason + "\r\n")
-#define ERR_NICKNAMEINUSE(nickname)                     (":" SERVER_NAME " 433 " + nickname + " :Nickname is already in use\r\n")
+#define ERR_NICKNAMEINUSE(nickname)                     (":" SERVER_NAME " 433 " + nickname + ": " + nickname + " is already in use\r\n")
 #define ERR_NOTONCHANNEL(channel)                       (":" SERVER_NAME " 442 " + channel + " :You're not on that channel\r\n")
 #define ERR_USERONCHANNEL(nickname, channel)            (":" SERVER_NAME " 443 " + nickname + " " + nickname + " " + channel + " :is already on channel\r\n")
 #define ERR_NOTREGISTERED                               (":" SERVER_NAME " 451 : You have not completed registation\r\n")

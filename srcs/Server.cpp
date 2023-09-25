@@ -99,14 +99,11 @@ void Server::run()
     g_isRunning = true;
     while (g_isRunning)
     {
-        struct timeval tv = {200, 200};
         readFDs = _masterFDs;
         
-        n = select(_fdMax + 1, &readFDs, NULL, NULL, &tv);
+        n = select(_fdMax + 1, &readFDs, NULL, NULL, NULL);
         if (n == -1)
-        {
             break;
-        }
         else if (n == 0)
         {
             std::cout << "Timeout. Trying again..." << std::endl;
