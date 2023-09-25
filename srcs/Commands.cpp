@@ -33,15 +33,17 @@ void Server::cap(ServerMessage serverMessage)
 void Server::sendErrorMessage(int socket, std::string error)
 {
     sendAll(socket , error);
+    error = trim(error);
     std::cout << RED << "fd: " << socket << " -> " << error << RESET << std::endl;
 }
 
 void Server::sendSuccessMessage(int socket, std::string numeric, std::string extraMessage)
 {
     sendAll(socket , numeric);
-    std::cout << GREEN << "fd: " << socket << " -> " << numeric << RESET << std::endl;
     if (extraMessage != "")
         sendAll(socket, extraMessage);
+    numeric = trim(numeric);
+    std::cout << GREEN << "fd: " << socket << " -> " << numeric << RESET << std::endl;
 }
 
 void Server::pass(ServerMessage serverMessage)
@@ -208,11 +210,6 @@ void Server::oper(ServerMessage serverMessage)
             {
                 it->second.setIsOperator(true);
                 sendSuccessMessage(serverMessage.getSocket(), RPL_YOUREOPER, "");
-                for (std::map<int, User>::iterator it = _users.begin(); it != _users.end(); it++)
-                {
-                    if (it->second.getSocket() != serverMessage.getSocket())
-                        sendSuccessMessage(it->second.getSocket(), RPL_YOUREOPER, "");
-                }
                 return;
             }
             else if (it->second.isOperator() == true)
@@ -228,13 +225,25 @@ void Server::oper(ServerMessage serverMessage)
 
 void Server::quit(ServerMessage serverMessage)
 {
+    //std::map<std::string, Channel>::iterator chan = _channels.begin();
+    //std::string quitNick = _users[serverMessage.getSocket()].getNickname();
+    //for (; chan != _channels.end(); chan++)
+    //{
+    //    chan->second.userRemove(_users[serverMessage.getSocket()]);
+    //}
+    //sendSuccessMessage(serverMessage.getSocket(), QUIT(quitNick), "");
+
+    User& user = getUserBySocket(serverMessage.getSocket());
+
     std::map<std::string, Channel>::iterator chan = _channels.begin();
-    std::string quitNick = _users[serverMessage.getSocket()].getNickname();
     for (; chan != _channels.end(); chan++)
     {
-        chan->second.userRemove(_users[serverMessage.getSocket()]);
+        if (chan->second.isUserInChannel(user))
+        {
+            chan->second.broadcastMessagetoChannel(QUIT(_users[serverMessage.getSocket()].getNickname()), user);
+            userRmFromChannel(user, chan->first);
+        }
     }
-    sendSuccessMessage(serverMessage.getSocket(), QUIT(quitNick), "");
 }
 
 void Server::join(ServerMessage serverMessage)
@@ -305,7 +314,7 @@ void Server::part(ServerMessage serverMessage)
     if (serverMessage.getParams().size() > 1)
         reason = serverMessage.getParams()[1];
     else
-        reason = "<Default Reason"; //TODO: better default reason?
+        reason = "I left";
 
     for (std::vector<std::string>::iterator it = channelsLeave.begin(); it != channelsLeave.end(); it++ )
     {
@@ -316,6 +325,9 @@ void Server::part(ServerMessage serverMessage)
         else
         {
             sendSuccessMessage(parter.getSocket(), PART(parter.getNickname(), *it, reason), "");
+            
+            Channel& channel = _channels.find(*it)->second;
+            channel.broadcastMessagetoChannel(PART(parter.getNickname(), *it, reason), parter);
             userRmFromChannel(parter, *it);
         }
     }

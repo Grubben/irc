@@ -44,15 +44,16 @@
 #define ERR_BADCHANNELKEY(nickname, channel)            (":" SERVER_NAME " 475 " + nickname + " " + channel + " :Cannot join channel (+k)\r\n")
 #define ERR_CHANOPRIVSNEEDED(nickname, channel)         (":" SERVER_NAME " 482 " + nickname + " " + channel + " :You're not channel operator\r\n")
 
-
+#define OPER(nickname, new_oper)                        (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " OPER " + new_oper + "\r\n")
 #define NICK(sender, nickname)                          (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " NICK " + nickname + "\r\n")
 #define MODE(channel, modes)                            (":" SERVER_NAME " MODE " + channel + " " + modes + "\r\n")
 #define OP_MODE(nickname, channel, modes)               (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " MODE " + channel + " " + modes + "\r\n")
 #define JOIN(joiner, channel)                           (":" + joiner + "!" + joiner + "@" + SERVER_NAME " JOIN " + channel + "\r\n")
-#define QUIT(nickname)                                  (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " QUIT :Bye bye\r\n")
+#define QUIT(nickname)                          (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " QUIT :Client quit \r\n")
 #define PRIVMSG(sender, receiver, message)              (":" + sender + "!" + sender + "@" + SERVER_NAME + " PRIVMSG " + receiver + " :" + message + "\r\n")
-#define PART(nickname, channel, reason)                 (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " PART " + channel + " :" + reason + "\r\n")
+#define PART(nickname, channel, reason)                 (":" + nickname + "!" + nickname + "@" + SERVER_NAME + " PART " + channel + " " + reason + "\r\n")
 #define KICK(kicker, channel, kickee, reason)           (":" + kicker + "!" + kicker + "@" + SERVER_NAME + " KICK " + channel + " " + kickee + " :" + reason + "\r\n")
 #define INVITE(inviter, invitee, channel)               (":" + inviter + "!" + inviter + "@" + SERVER_NAME + " INVITE " + invitee + " " + channel + "\r\n")
+
 
 #endif
