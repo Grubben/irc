@@ -155,10 +155,13 @@ void Server::privmsg(ServerMessage serverMessage)
             std::map<int, User*>::iterator user = chan->second.getUsers().begin();
             for (; user != chan->second.getUsers().end(); user++)
             {
-                if (message[0] == ':')
-                    message.erase(0, 1);
-                if (sender.getSocket() != user->first)
-                    sendSuccessMessage(user->first, PRIVMSG(_users[serverMessage.getSocket()].getNickname(), chan->first, message), "");
+                if (chan->second.isUserInChannel(sender))
+                {
+                    if (message[0] == ':')
+                        message.erase(0, 1);
+                    if (sender.getSocket() != user->first)
+                        sendSuccessMessage(user->first, PRIVMSG(_users[serverMessage.getSocket()].getNickname(), chan->first, message), "");
+                }
             }
         }
         else
@@ -290,6 +293,9 @@ void Server::part(ServerMessage serverMessage)
     if (parter.isLoggedIn() == false)
         throw std::string(ERR_NOTREGISTERED);
  
+    if (serverMessage.getParams().size() < 1)
+        throw std::string(ERR_NEEDMOREPARAMS("PART"));
+
     std::vector<std::string> channelsLeave = split(serverMessage.getParams()[0], ",");
 
     std::string reason;
